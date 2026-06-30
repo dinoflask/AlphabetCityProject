@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en-US">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Alphabet City Project</title>
+</head>
+
+<body>
+    {% if all_answers_list %}
+    <ul>
+        {% for answer in all_answers_list %}
+        <li><a href="/alphabetcity/detail/{{ answer.id }}/">{{ answer.answer_text }}</a></li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No answers are available.</p>
+    {% endif %}
+</body>
+
+</html>

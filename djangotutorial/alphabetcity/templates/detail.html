@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en-US">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Alphabet City Project</title>
+</head>
+
+<body>
+
+<!-- Display The Question Associated With This Answer -->
+<h1>{{ answer.question.question_text }}</h1>
+
+<p>{{answer.answer_text}}</p>
+
+{% if request.session.resident_id == answer.resident.id %}
+<a href="{% url 'edit' answer_id=answer.id %}">Edit this answer</a>
+{% endif %}
+
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+
+<!doctype html>
+<html lang="en-US">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Alphabet City Project</title>
+</head>
+
+<body>
+
+    {{ question }}
+
+    <form action="{% url 'answer' question.pk %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Submit">
+    </form>
+    
+    </body>
+    
+    </html>
