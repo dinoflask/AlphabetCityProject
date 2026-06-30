@@ -1,1 +1,12 @@
-echo ".env" >> .gitignore
+# Environments
+.env
+venv/
+.venv/
+
+# Django-specific logs and databases
+*.log
+db.sqlite3
+
+# Python bytecode
+*.pyc
+__pycache__/
