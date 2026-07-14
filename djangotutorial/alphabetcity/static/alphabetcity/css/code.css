@@ -1,0 +1,153 @@
+/*
+ * Code page ("Enter Your Code" frame).
+ *
+ * A centered stadium/pill input (Figma: 629x86, cornerRadius 62 -> fully rounded
+ * ends), a caption below it, and an italic "see the website" link near the foot.
+ * Same fluid strategy as Welcome: vw/clamp sizing + em letter-spacing so it holds
+ * from laptop to 4K. Arrives from white to continue Welcome's fade-out.
+ */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+.code {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Paper grain (shared token, matches Welcome). */
+.code__texture {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.5;
+  background-image: url("../img/code-texture.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  mix-blend-mode: multiply;              /* keep cream base; only grain darkens through */
+  pointer-events: none;
+}
+
+/* ---- The pill input + caption ---------------------------------------- */
+
+.code__form {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.code__field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.code__input {
+  /* 629x86 pill, scaled fluidly and capped at the Figma size. */
+  width: min(629px, 82vw);
+  height: clamp(58px, 6.7vw, 86px);
+  border: 1px solid var(--ink);
+  border-radius: 999px;                 /* radius 62 > half-height -> stadium */
+  background: var(--cream);
+
+  font-family: inherit;
+  font-size: clamp(1.85rem, 2.7vw, 2.8rem);
+  text-align: center;
+  letter-spacing: 1em;                /* the spaced-out digits */
+  text-indent: 0.5em;                   /* re-center vs trailing track (half the tracking) */
+  color: var(--ink);
+
+  outline: none;
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+
+.code__input::placeholder {
+  color: var(--ink);
+  opacity: 0.28;
+}
+
+.code__input:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 0.5px var(--ink);     /* subtle doubling of the outline */
+}
+
+.code__label {
+  margin-top: clamp(10px, 1.4vw, 18px);
+  font-size: clamp(0.95rem, 1.15vw, 1.35rem);   /* 20px @1280 */
+  color: var(--ink);
+}
+
+/* Validation / "code doesn't exist" messages. */
+.code__messages {
+  list-style: none;
+  margin: clamp(10px, 1.4vw, 18px) 0 0;
+  padding: 0;
+  text-align: center;
+}
+
+.code__message {
+  font-size: clamp(0.9rem, 1.1vw, 1.2rem);
+  font-style: italic;
+  color: var(--accent-red);
+}
+
+/* ---- "Not answering? See the website ->" ----------------------------- */
+
+.code__website {
+  position: absolute;
+  bottom: clamp(18px, 4vh, 56px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+
+  font-style: italic;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  font-size: clamp(0.88rem, 1.05vw, 1.2rem);   /* 14px @1280 */
+  color: var(--ink);
+  white-space: nowrap;
+  transition: color 200ms ease;
+}
+
+.code__website:hover { color: var(--accent-red); }
+
+/* ---- Arrive from white (continues Welcome's fade-out) ---------------- */
+
+.code__fade {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: #fff;
+  pointer-events: none;
+  animation: code-fade-in 700ms ease forwards;
+}
+
+@keyframes code-fade-in {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .code__fade { animation: none; opacity: 0; }
+  .code__input { transition: none; }
+}

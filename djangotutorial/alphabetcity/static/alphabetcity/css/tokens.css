@@ -1,0 +1,18 @@
+/*
+ * Design tokens — the single source of truth for color + type across every
+ * Islands page (Django templates AND the React/three.js Index widget import this).
+ * Values taken directly from the Figma "Alphabet City" file.
+ */
+:root {
+  /* Palette */
+  --cream: #fff5da;        /* frame background  (rgb 255 245 218) */
+  --ink: #000000;          /* primary text */
+  --accent-red: #d32d1d;   /* "Enter" / arrow   (rgb 211 45 29) */
+
+  /* Type */
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+
+  /* Paper grain — procedural desaturated fractal noise, shared by every page's
+     texture layer so there's one definition and no image asset to download. */
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}

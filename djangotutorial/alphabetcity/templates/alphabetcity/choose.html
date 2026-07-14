@@ -1,0 +1,44 @@
+{% load static %}
+<!doctype html>
+<html lang="en-US">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Choose a Question · Alphabet City Project</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="{% static 'alphabetcity/css/tokens.css' %}" />
+  <link rel="stylesheet" href="{% static 'alphabetcity/css/choose.css' %}" />
+</head>
+
+<body>
+  <main class="choose">
+    <!-- Glyphs ordered left->right along the curve (slot 0 = leftmost). -->
+    <div class="choose__glyphs" aria-hidden="true">
+      <img class="choose__glyph" data-scale="1.2" src="{% static 'alphabetcity/img/choose-glyph-4.png' %}" alt="" />
+      <img class="choose__glyph" data-scale="1.2" src="{% static 'alphabetcity/img/choose-glyph-3.png' %}" alt="" />
+      <img class="choose__glyph" data-scale="1.2" src="{% static 'alphabetcity/img/choose-glyph-2.png' %}" alt="" />
+      <img class="choose__glyph" data-scale="1" src="{% static 'alphabetcity/img/choose-glyph-1.png' %}" alt="" />
+    </div>
+
+    <div class="choose__viewport">
+      <div class="choose__track">
+        {% for q in questions %}
+        <a class="choose__q" href="{% url 'answer' q.pk %}">{{ q.question_text }}</a>
+        {% empty %}
+        <p class="choose__q">No questions are available yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="choose__fade" aria-hidden="true"></div>
+  </main>
+
+  <script src="{% static 'alphabetcity/js/choose.js' %}" defer></script>
+</body>
+
+</html>

@@ -1,12 +1,16 @@
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponse
-from alphabetcity.forms import AnswerForm, LoginForm, QuestionForm
+from alphabetcity.forms import AnswerForm, LoginForm
 from alphabetcity.models import Question, Answer, Resident
 
 
 #Sessions: Create session on this request
 #Next: Time people out
+
+def welcome(request):
+    return render(request, "alphabetcity/welcome.html")
+
 
 def login(request):
 
@@ -24,7 +28,7 @@ def login(request):
     else:
         form = LoginForm()
 
-    return render(request, "login.html", {"form": form})
+    return render(request, "alphabetcity/code.html", {"form": form})
 
 
 def index(request):
@@ -41,15 +45,10 @@ def choose_question(request):
         messages.error(request, "Sign in with your code first!")
         return redirect('login')
 
-    if request.method == "POST":
-        form = QuestionForm(request.POST)
-        if form.is_valid():
-            question_pk = form.cleaned_data['pk']
-            return redirect('answer', question_pk=question_pk)
-    else:
-        form = QuestionForm()
-
-    return render(request, "choose.html", {"form": form})
+    # The Choose page lets the resident click a question directly (each links to
+    # its Answer page), so no form round-trip is needed here.
+    questions = Question.objects.all().order_by("pk")
+    return render(request, "alphabetcity/choose.html", {"questions": questions})
 
 def answer_question(request, question_pk):
     #Sessions: Check if this request has a session attached

@@ -1,0 +1,279 @@
+/*
+ * Welcome page.
+ *
+ * Layout strategy: the Figma frame is 1280x720 landscape meant for large
+ * displays (up to a 4K TV). Rather than pin to those pixels, everything scales
+ * with the viewport (vw/vh + clamp + em-based letter-spacing), so the same
+ * composition holds from a laptop up to 4K without re-authoring.
+ *
+ * Animation strategy: only opacity and transform are animated (GPU-composited,
+ * no layout thrash) so even elaborate letter choreography stays cheap on the
+ * client and never touches the server.
+ */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+.welcome {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  overflow: hidden;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Layered backgrounds ---------------------------------------------- */
+
+.welcome__scenery,
+.welcome__texture {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+/* Sepia city watermark, with a very slow "settle into place" Ken Burns.
+   Figma used 0.08 (near-invisible); raised so it actually reads. Tune here. */
+.welcome__scenery {
+  opacity: 1;
+  transform-origin: center;
+
+  /* Ink bleed-in: the CodyHouse 25-frame sprite (16000x360) used as a MASK, so
+     the sepia photo paints itself on like spreading ink. mask-size 2500% lays
+     all 25 frames across the element; the steps(24) animation flips through them
+     by sliding mask-position. Base position is the LAST frame (full reveal) so
+     the photo stays fully shown once the animation ends or is disabled. */
+  -webkit-mask: url("../img/ink.png") no-repeat 100% 0;
+  mask: url("../img/ink.png") no-repeat 100% 0;
+  -webkit-mask-size: 2500% 100%;
+  mask-size: 2500% 100%;
+
+  animation: welcome-ink-in 1.4s steps(24) both,
+             welcome-kenburns 9s ease-out both;
+}
+
+@keyframes welcome-ink-in {
+  from { -webkit-mask-position: 0 0; mask-position: 0 0; }   /* first frame: a droplet */
+  to   { -webkit-mask-position: 100% 0; mask-position: 100% 0; }  /* last frame: full */
+}
+
+/* Paper grain overlay — generated procedurally (inline SVG fractal noise,
+   desaturated to grey) so it needs no image asset and stays crisp at any size.
+   Swap in a real re-exported texture PNG here later if you want the exact grain. */
+.welcome__texture {
+  opacity: 0.30;
+  background-image: var(--paper-grain);
+  background-size: 150px 150px;
+  background-repeat: repeat;
+  mix-blend-mode: multiply;
+}
+
+@keyframes welcome-kenburns {
+  from { transform: scale(1.08) translateY(-1.4%); }
+  to   { transform: scale(1) translateY(0); }
+}
+
+/* ---- Logo ------------------------------------------------------------- */
+
+.welcome__logo {
+  position: absolute;
+  top: clamp(18px, 3.5vh, 48px);
+  left: 50%;
+  transform: translate(-50%, 40%);  
+  width: clamp(46px, 5vw, 104px);
+  height: auto;
+  z-index: 2;
+}
+
+/* ---- Centered content (title + Enter) --------------------------------- */
+
+.welcome__content {
+  transform: translate(0%, 5%);
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 6vw;
+}
+
+.welcome__title {
+  margin: 0;
+  font-weight: 400;
+  font-size: clamp(1.05rem, 1.62vw, 3.4rem);  /* scaled down ~14% from 24px @1280 */
+  line-height: 1.34;
+  letter-spacing: 0.3em;                      /* tightened from 0.39em */
+  text-indent: 0.3em;                         /* re-center vs trailing track */
+}
+
+.welcome__title-line { display: block; }
+
+/* Per-letter unit for the title fade-in. */
+.welcome__letter {
+  display: inline-block;
+  opacity: 0;                 /* revealed by JS (or forced to 1 for reduced motion) */
+  will-change: opacity, transform;
+}
+
+/* First letter of each word is enlarged — the engraved "initial" look. */
+.welcome__letter.is-initial { font-size: 1.34em; }   /* 32px / 24px */
+
+.welcome__letter.is-fading-in {
+  animation: welcome-letter-in 700ms ease both;
+}
+
+@keyframes welcome-letter-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.welcome__space { display: inline-block; }
+
+/* ---- Enter ------------------------------------------------------------ */
+
+.welcome__enter {
+  transform: translate(0%, 5px);
+  appearance: none;
+  -webkit-appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin-top: clamp(48px, 11vh, 168px);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+  font-family: inherit;
+  color: var(--accent-red);
+  cursor: pointer;
+}
+
+.welcome__enter-text {
+  font-size: clamp(0.85rem, 1.35vw, 2.7rem);  /* scaled down ~14% from 20px @1280 */
+  letter-spacing: 0.2em;                      /* tightened from 0.27em */
+  text-indent: 0.2em;
+}
+
+/* Per-letter unit for the hover ripple recolor (red <-> black). */
+.welcome__enter-letter {
+  display: inline-block;
+  color: var(--accent-red);
+  transition: opacity 280ms ease;   /* the fade half of each letter's swap (matches FADE_MS) */
+}
+
+.welcome__enter-letter.is-initial { font-size: 1.1em; }   /* 22px / 20px */
+.welcome__enter-letter.is-fading { opacity: 0; }
+
+.welcome__arrow {
+  /* Combined into ONE declaration — two separate `transform` lines override
+     each other (last wins), which is why translate had no effect before. */
+  transform: translate(0px, 5px) rotate(180deg);
+  width: clamp(8px, 0.7vw, 18px);
+  height: auto;
+  overflow: visible;                /* let round caps show at the edges */
+  stroke: currentColor;             /* default before the first hover */
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Normalised to pathLength=100; starts fully drawn. welcome.js animates the
+   dashoffset to erase/redraw it (and sets stroke directly while hidden). */
+.welcome__arrow-path {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+}
+
+/* ---- Footer (language toggles + privacy) ------------------------------ */
+
+.welcome__footer {
+  position: absolute;
+  left: clamp(16px, 2vw, 48px);
+  bottom: clamp(14px, 2.5vh, 40px);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1.4em;
+  font-size: clamp(0.6rem, 0.8vw, 1.15rem);
+  letter-spacing: 0.06em;
+}
+
+.welcome__langs {
+  display: flex;
+  gap: 0.7em;
+}
+
+.welcome__lang {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  opacity: 0.55;
+}
+
+.welcome__lang.is-active {
+  opacity: 1;
+  color: var(--accent-red);
+}
+
+.welcome__privacy {
+  color: var(--ink);
+  text-decoration: none;
+  letter-spacing: 0.1em;
+}
+
+/* ---- Leave transition: content slides up + screen fades to white ------ */
+
+.welcome__fade {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1s ease-in-out;
+}
+
+.welcome.is-leaving .welcome__content {
+  transform: translateY(-40px);
+  opacity: 0;
+  transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+}
+
+.welcome.is-leaving .welcome__fade { opacity: 1; }
+
+.welcome.is-leaving .welcome__logo,
+.welcome.is-leaving .welcome__footer {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+/* ---- Respect reduced-motion ------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome__scenery { animation: none; }
+  .welcome__letter {
+    opacity: 1;
+    animation: none;
+  }
+  .welcome__content,
+  .welcome__fade { transition: none; }
+}

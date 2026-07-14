@@ -4,11 +4,14 @@ from . import views
 
 urlpatterns = [
 
+    # ex: /alphabetcity/  (landing / Welcome frame)
+    path("", views.welcome, name="welcome"),
+
     # Pre-Answer
-    # ex: /alphabetcity/login/
+    # ex: /alphabetcity/login/  (Code frame)
     path("login/", views.login, name="login"),
-    # ex: /alphabetcity/
-    path("", views.index, name="index"),
+    # ex: /alphabetcity/index/  (answers wall)
+    path("index/", views.index, name="index"),
     # ex: /alphabetcity/5/
     path("detail/<int:answer_id>/", views.detail_answer, name="detail"),
     # ex: /alphabetcity/choose/

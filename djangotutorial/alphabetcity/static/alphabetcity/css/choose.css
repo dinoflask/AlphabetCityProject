@@ -1,0 +1,133 @@
+/*
+ * Choose page.
+ *
+ * A custom "resist-then-snap" scroll: the page doesn't scroll natively — wheel
+ * intent accumulates as tension that nudges the question track, then snaps to
+ * the next question (choose.js). A vertical gradient MASK creates the focus/fade:
+ * the focused question is solid, neighbours fade by distance, two steps away is
+ * invisible. Three decorative glyphs conga along a curved path as you scroll.
+ */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  /* No native scroll — the wheel drives the custom stepper. */
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.choose {
+  --focus-top: 32%;                         /* y of the focused question's top */
+  --step: clamp(84px, 15vh, 150px);         /* vertical gap between questions (~108px @720) */
+  --track-left: clamp(24px, 17.8vw, 260px); /* x=228 @1280 */
+  --track-width: min(571px, 52vw);
+
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  overflow: hidden;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  cursor: default;
+}
+
+/* ---- Glyphs (behind the text) ---------------------------------------- */
+
+.choose__glyphs {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.choose__glyph {
+  position: absolute;
+  left: 0;
+  top: 0;
+  /* Sized by HEIGHT so glyphs of very different aspect ratios (e.g. the tall,
+     narrow Glyph 1) read at a consistent visual size. */
+  height: clamp(110px, 22vh, 240px);
+  width: auto;
+  /* JS sets translate()/scale()/opacity each frame; -50% centers on the point. */
+  transform: translate(-50%, -50%);
+  will-change: transform, opacity;
+  opacity: 0;                               /* revealed by JS once positioned */
+}
+
+/* ---- Question track (masked focus band) ------------------------------ */
+
+.choose__viewport {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  /* Focus band ~fully opaque around 35%; fades above and below by distance. */
+  /* Stricter than before: fully transparent by 54%, so a question two steps
+     below the focus (the third, when the first is focused) is invisible. */
+  -webkit-mask-image: linear-gradient(to bottom,
+      transparent 14%, #000 30%, #000 40%, transparent 54%);
+  mask-image: linear-gradient(to bottom,
+      transparent 14%, #000 30%, #000 40%, transparent 54%);
+}
+
+.choose__track {
+  position: absolute;
+  left: var(--track-left);
+  top: var(--focus-top);
+  width: var(--track-width);
+}
+
+.choose__q {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  display: block;
+  font-size: clamp(1rem, 1.56vw, 1.9rem);   /* 20px @1280 */
+  font-weight: 400;
+  line-height: 1.33;
+  color: var(--ink);
+  text-decoration: none;
+  /* Only the centered (focused) question is interactive; JS toggles .is-focused. */
+  pointer-events: none;
+  cursor: default;
+  /* JS sets translateY((index - progress) * step). */
+  will-change: transform;
+}
+
+.choose__q.is-focused {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.choose__q.is-focused:hover { color: var(--accent-red); }
+
+/* White fade when a question is chosen (no component movement). */
+.choose__fade {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 700ms ease-in-out;
+}
+
+.choose__fade.is-active { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .choose__fade { transition: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .choose__glyph,
+  .choose__q { will-change: auto; }
+}

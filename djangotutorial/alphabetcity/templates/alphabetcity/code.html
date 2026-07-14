@@ -1,0 +1,50 @@
+{% load static %}
+<!doctype html>
+<html lang="en-US">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Enter Your Code · Alphabet City Project</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="{% static 'alphabetcity/css/tokens.css' %}" />
+  <link rel="stylesheet" href="{% static 'alphabetcity/css/code.css' %}" />
+</head>
+
+<body>
+  <main class="code">
+    <div class="code__texture" aria-hidden="true"></div>
+
+    <form class="code__form" method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      <div class="code__field">
+        <input class="code__input" id="code-input" type="text" name="code"
+               inputmode="text" maxlength="6" minlength="6" autocomplete="off"
+               spellcheck="false" autofocus aria-label="Enter your code"
+               value="{{ form.code.value|default:'' }}" />
+        <label class="code__label" for="code-input">Enter Your Code</label>
+      </div>
+
+      {% if messages or form.code.errors %}
+      <ul class="code__messages">
+        {% for message in messages %}
+        <li class="code__message">{{ message }}</li>
+        {% endfor %}
+        {% for error in form.code.errors %}
+        <li class="code__message">{{ error }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </form>
+
+    <a class="code__website" href="{% url 'index' %}">Not answering? See the website →</a>
+
+    <div class="code__fade" aria-hidden="true"></div>
+  </main>
+</body>
+
+</html>
