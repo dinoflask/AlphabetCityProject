@@ -26,13 +26,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # --- Secret key & debug ---
+# All three come from the environment (.env locally, platform env vars in prod).
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+ALLOWED_HOSTS = [h for h in config('ALLOWED_HOSTS', default='').split(',') if h]
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
+# Production https origins for CSRF (your domain[s]), e.g.
+# "https://alphabetcityproject.org,https://www.alphabetcityproject.org".
+CSRF_TRUSTED_ORIGINS = [o for o in config('CSRF_TRUSTED_ORIGINS', default='').split(',') if o]
+
+# DigitalOcean (App Platform, or nginx on a Droplet) terminates TLS in front of
+# the app, so trust the forwarded-proto header to detect the original HTTPS.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Extra hardening once DEBUG is off (no-ops in local dev where DEBUG=True).
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
 
 
 # Application definition

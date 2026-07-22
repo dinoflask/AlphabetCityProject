@@ -1,6 +1,10 @@
-django>=4.2,<5.0
+# Django 6.0 requires Python 3.12+.
+Django>=6.0,<6.1
 gunicorn>=21.2.0
-mysqlclient>=2.2.0
+whitenoise>=6.6.0
 python-decouple>=3.8
 dj-database-url>=2.1.0
-whitenoise>=6.6.0
+# PostgreSQL driver — only used if DATABASE_URL points at Postgres (App Platform
+# / managed DB path). Harmless to install for the SQLite/Droplet path. The
+# [binary] extra ships a self-contained wheel, so no system libraries are needed.
+psycopg[binary]>=3.2
