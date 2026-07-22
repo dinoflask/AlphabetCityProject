@@ -14,7 +14,8 @@ class Question(models.Model):
     
 class Resident(models.Model):
     code = models.CharField(max_length=6, unique=True, null=True)
-    # nothing else identifying
+    # Consent to use their story for grant-writing purposes (set on the Answer page).
+    grant_writing = models.BooleanField(default=False)
 
 class Answer(models.Model):
     resident = models.ForeignKey(Resident, on_delete=models.CASCADE, null=True) #Can be not assigned to a person, for now

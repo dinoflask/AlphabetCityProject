@@ -90,6 +90,18 @@ DATABASES = {
 }
 
 
+# Cache — backs django-ratelimit's login-attempt counters. The database cache
+# needs no extra service (Redis/Memcached), is shared across gunicorn workers,
+# and survives restarts. Run `python manage.py createcachetable` once to create
+# the backing table named below.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'ratelimit_cache',
+    }
+}
+
+
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 

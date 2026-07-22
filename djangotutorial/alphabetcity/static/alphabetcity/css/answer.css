@@ -1,0 +1,224 @@
+/*
+ * Answer page — write a story in response to a question.
+ * The input is "just a red line": a borderless textarea with only a red
+ * underline. It is exactly five text-lines tall; typing a sixth line scrolls the
+ * top line up out of view (clipped), so the box never grows. See answer.js.
+ */
+
+/* Reset the browser's default body margin (that was the ~10px white border),
+   paint the whole page cream, and forbid page scrolling entirely. */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--cream);
+  overflow: hidden;
+}
+
+/* Locked to exactly the viewport height with clipped overflow — the page never
+   scrolls, so the disclaimer (pinned to the bottom) is always on-screen. */
+.answer {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--cream);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* center the whole stack so nothing feels stranded */
+  padding: clamp(1.25rem, 4vh, 3rem) 1rem 1.5rem;
+  overflow: hidden;
+}
+
+/* Shared procedural paper grain, very subtle. */
+.answer__texture {
+  position: fixed;
+  inset: 0;
+  background-image: var(--paper-grain);
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.answer__question {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-display);
+  font-weight: 200;
+  font-size: clamp(20px, 2.2vw, 26px);
+  color: var(--ink);
+  text-align: center;
+  max-width: min(883px, 88vw);
+  margin: 0 0 clamp(1rem, 4vh, 2.5rem);
+  transform: translateY(20px);
+}
+
+/* Small black divider rule right beneath the question. */
+
+
+.answer__form {
+  position: relative;
+  z-index: 1;
+  width: min(883px, 88vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Lower the whole answering apparatus (input + count + SEND) 20px more. */
+  transform: translateY(0px);
+}
+
+/* Lower the whole input box (transform = visual only), with a matching reserved
+   margin so the SEND button below never overlaps it. The drop is a clamp so it
+   shrinks on short screens and the disclaimer always stays on-page. */
+.answer__field {
+  width: 100%;
+  --drop: clamp(1.5rem, 6vh, 100px);
+  transform: translateY(var(--drop));
+  margin-bottom: var(--drop);
+}
+
+/* The star of the page: a red-underlined textarea that starts one line tall (red
+   line + count hug the top) and auto-grows one line at a time as you type — up to
+   MAX_LINES (see answer.js). Past that it caps and becomes scrollable. */
+.answer__input {
+  display: block;
+  width: 100%;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(20px, 2.4vw, 28px);
+  line-height: 1.45;
+  height: 1.45em; /* one line to start; answer.js manages growth */
+  box-sizing: content-box;
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid var(--accent-red);
+  background: transparent;
+  color: var(--ink);
+  resize: none;
+  overflow-y: hidden; /* answer.js switches to auto once it hits the cap */
+  outline: none;
+}
+
+.answer__input::placeholder {
+  color: rgba(0, 0, 0, 0.28);
+}
+
+.answer__count {
+  width: 100%;
+  text-align: right;
+  font-family: "Montserrat", sans-serif;
+  font-size: 16px;
+  color: var(--ink);
+  margin-top: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Grant-writing consent: a large custom checkbox (yellow fill when checked). */
+.answer__consent {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 620px;
+  margin-top: clamp(1rem, 3vh, 2rem);
+  cursor: pointer;
+  text-align: left;
+}
+.answer__consent-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.answer__consent-box {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+.answer__consent-box svg {
+  width: 23px;
+  height: 23px;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.answer__consent-input:checked + .answer__consent-box { background: #ffd155; }
+.answer__consent-input:checked + .answer__consent-box svg { opacity: 1; }
+.answer__consent-input:focus-visible + .answer__consent-box {
+  outline: 2px solid var(--accent-red);
+  outline-offset: 2px;
+}
+.answer__consent-label {
+  font-family: "Montserrat", "Helvetica Neue", sans-serif;
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.answer__send {
+  margin-top: clamp(1rem, 3vh, 2rem);
+  font-family: "Montserrat", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--ink);
+  background: #ffd155;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 0.7em 2.1em;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.answer__send:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+}
+
+.answer__send:active {
+  transform: translateY(0);
+}
+
+/* Below the 15-word minimum: SEND is greyed out and inert (answer.js toggles). */
+.answer__send:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: none;
+  transform: none;
+}
+
+/* Word count turns red until the minimum is met (class is on the #answer-count span). */
+#answer-count.is-short { color: var(--accent-red); }
+
+.answer__messages {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+  text-align: center;
+}
+
+.answer__message {
+  font-family: "Montserrat", sans-serif;
+  font-size: 13px;
+  color: var(--accent-red);
+}
+
+/* Now the last element inside the form, so it travels with the apparatus (the
+   form's 20px drop + the box's growth) instead of floating at the page bottom. */
+.answer__note {
+  position: relative;
+  z-index: 1;
+  margin-top: clamp(2rem, 6vh, 4rem);
+  max-width: min(1039px, 92vw);
+  text-align: center;
+  font-family: "Montserrat", sans-serif;
+  font-size: 12px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  color: #333;
+}

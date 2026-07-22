@@ -1,0 +1,67 @@
+{% load static %}
+<!doctype html>
+<html lang="en-US">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Share Your Story · Alphabet City Project</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="{% static 'alphabetcity/css/tokens.css' %}" />
+  <link rel="stylesheet" href="{% static 'alphabetcity/css/answer.css' %}" />
+</head>
+
+<body>
+  <main class="answer">
+    <div class="answer__texture" aria-hidden="true"></div>
+
+    <h3 class="answer__question">{{ question.question_text }}</h3>
+
+    <form class="answer__form" method="post" action="{{ form_action }}">
+      {% csrf_token %}
+
+      <div class="answer__field">
+        <textarea class="answer__input" id="answer-input" name="answer_text"
+                  rows="1" spellcheck="true" autofocus
+                  placeholder="Tell your story…">{{ form.answer_text.value|default:'' }}</textarea>
+        <div class="answer__count"><span id="answer-count">0</span></div>
+      </div>
+
+      {% if form.answer_text.errors or messages %}
+      <ul class="answer__messages">
+        {% for message in messages %}
+        <li class="answer__message">{{ message }}</li>
+        {% endfor %}
+        {% for error in form.answer_text.errors %}
+        <li class="answer__message">{{ error }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      <label class="answer__consent">
+        <input class="answer__consent-input" type="checkbox" name="grant_writing"
+               {% if grant_writing %}checked{% endif %} />
+        <span class="answer__consent-box" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2D1B00" stroke-width="3"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12.5l4.5 4.5L19 7" />
+          </svg>
+        </span>
+        <span class="answer__consent-label">Allow us to include your response for grant-writing purposes!</span>
+      </label>
+
+      <button class="answer__send" type="submit">{{ submit_label|default:"SEND" }}</button>
+
+      <p class="answer__note">*WE REQUIRE YOU NOT INCLUDE NAMES, OR OTHER PERSONAL INFORMATION.
+        THERE IS A ZERO-TOLERANCE POLICY FOR BULLYING, HARASSMENT, OR SPAM.</p>
+    </form>
+  </main>
+
+  <script src="{% static 'alphabetcity/js/answer.js' %}"></script>
+</body>
+
+</html>

@@ -1,21 +1,221 @@
+{% load static %}
 <!doctype html>
 <html lang="en-US">
 
 <head>
-    <meta charset="utf-8" />
-    <title>Alphabet City Project</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alphabet City Project</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; background: #fff5da; }
+    /* Garden background behind; the (transparent) answer-dots canvas in front. */
+    #garden-bg { position: fixed; inset: 0; z-index: 0; }
+    #index-root { position: fixed; inset: 0; z-index: 1; }
+
+    /* Upper-left corner buttons (home + help) — identical boxes, side by side. */
+    .corner-btns {
+      position: fixed; top: 24px; left: 24px; z-index: 10;
+      display: flex; gap: 12px;
+    }
+    .corner-btn {
+      width: 65px; height: 65px;
+      display: flex; align-items: center; justify-content: center;
+      background: #E2D7C0; border: 1px solid #2D1B00; border-radius: 18px;
+      color: #2D1B00; cursor: pointer; padding: 0; text-decoration: none;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+    .corner-btn:hover { filter: brightness(1.03); transform: translateY(-1px); }
+    .corner-btn:active { transform: translateY(0); }
+    /* The "?" glyph in the help button. */
+    .help-toggle { font-family: "Playfair Display", Georgia, serif; font-size: 32px; line-height: 1; }
+
+    /* Screensaver button — same box, on its own in the top-right corner. */
+    .screensaver-toggle { position: fixed; top: 24px; right: 24px; z-index: 10; }
+
+    /* In screensaver mode every corner icon fades away. */
+    .corner-btns, .screensaver-toggle { transition: opacity 0.4s ease, transform 0.15s ease, filter 0.15s ease; }
+    body.screensaver .corner-btns,
+    body.screensaver .screensaver-toggle { opacity: 0; pointer-events: none; }
+
+    /* Centered help panel */
+    .help-panel {
+      position: fixed; inset: 0; z-index: 20;
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+      background: rgba(40, 27, 0, 0.18);
+      opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+    }
+    .help-panel.open { opacity: 1; pointer-events: auto; }
+
+    .help-card {
+      position: relative;
+      width: min(740px, 92vw); max-height: 88vh; overflow-y: auto;
+      overscroll-behavior: none; /* kill the elastic bounce that reveals the edge */
+      background: #fcf3d6; border: 4px solid #664718; border-radius: 20px;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+      padding: clamp(28px, 4vw, 48px) clamp(28px, 5vw, 56px);
+      transform: scale(0.96); transition: transform 0.2s ease;
+    }
+    .help-panel.open .help-card { transform: scale(1); }
+
+    .help-card h2 {
+      font-family: "Playfair Display", Georgia, serif; font-weight: 500;
+      font-size: 32px; color: #2D1B00; margin: 0 0 12px;
+    }
+    .help-card h2:not(:first-of-type) { margin-top: 32px; }
+    .help-card p {
+      font-family: "Montserrat", "Helvetica Neue", sans-serif; font-weight: 400;
+      font-size: 18px; line-height: 1.5; color: #2b2b2b; margin: 0 0 14px;
+    }
+    .help-close {
+      position: absolute; top: 10px; right: 16px;
+      border: none; background: none; font-size: 26px; line-height: 1;
+      color: #664718; cursor: pointer; font-family: sans-serif;
+    }
+    .help-close:hover { opacity: 0.6; }
+
+    /* Delete-confirmation popup. Yes/No buttons mirror the answer page's SEND pill. */
+    .confirm-panel {
+      position: fixed; inset: 0; z-index: 30;
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+      background: rgba(40, 27, 0, 0.28);
+      opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+    }
+    .confirm-panel.open { opacity: 1; pointer-events: auto; }
+    .confirm-card {
+      background: #fcf3d6; border: 4px solid #664718; border-radius: 20px;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+      padding: 34px 44px; max-width: min(460px, 92vw); text-align: center;
+      transform: scale(0.96); transition: transform 0.2s ease;
+    }
+    .confirm-panel.open .confirm-card { transform: scale(1); }
+    .confirm-text {
+      font-family: "Playfair Display", Georgia, serif; font-weight: 500;
+      font-size: 22px; line-height: 1.3; color: #2D1B00; margin: 0 0 24px;
+    }
+    .confirm-actions { display: flex; gap: 16px; justify-content: center; }
+    .confirm-btn {
+      font-family: "Montserrat", sans-serif; font-size: 16px; font-weight: 500;
+      letter-spacing: 0.14em; color: #000;
+      background: #ffd155; border: 2px solid #000; border-radius: 999px;
+      padding: 0.6em 2em; cursor: pointer;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+    .confirm-btn:hover { filter: brightness(1.04); transform: translateY(-1px); }
+    .confirm-btn:active { transform: translateY(0); }
+
+    /* Deletion / update notice toast, top-center, auto-dismisses. */
+    .index-toast {
+      position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+      z-index: 40; background: #fcf3d6; border: 2px solid #664718; border-radius: 999px;
+      padding: 10px 24px; font-family: "Montserrat", sans-serif; font-size: 15px;
+      color: #2D1B00; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+      opacity: 0; animation: toastIn 0.3s ease forwards;
+    }
+    .index-toast.hide { opacity: 0; transition: opacity 0.4s ease; }
+    @keyframes toastIn { to { opacity: 1; } }
+  </style>
 </head>
 
 <body>
-    {% if all_answers_list %}
-    <ul>
-        {% for answer in all_answers_list %}
-        <li><a href="/alphabetcity/detail/{{ answer.id }}/">{{ answer.answer_text }}</a></li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <p>No answers are available.</p>
-    {% endif %}
+  <div id="garden-bg"></div>
+  <div id="index-root"></div>
+
+  <div class="corner-btns">
+    <a href="{% url 'welcome' %}" class="corner-btn" aria-label="Home">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2D1B00"
+           stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 11.5 12 4l9 7.5" />
+        <path d="M5 10v9h14v-9" />
+        <path d="M10 19v-5h4v5" />
+      </svg>
+    </a>
+    <button id="help-toggle" class="corner-btn help-toggle" aria-label="Help">?</button>
+  </div>
+
+  <button id="screensaver-toggle" class="corner-btn screensaver-toggle" aria-label="Screensaver mode">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2D1B00"
+         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 9V4h5" />
+      <path d="M20 9V4h-5" />
+      
+      <path d="M4 15v5h5" />
+      <path d="M20 15v5h-5" />
+    </svg>
+  </button>
+
+  <div id="help-panel" class="help-panel">
+    <div class="help-card" role="dialog" aria-modal="true" aria-label="Help">
+      <button id="help-close" class="help-close" aria-label="Close help">×</button>
+      <h2>What is this?</h2>
+      <p>This is the Alphabet City Project, an interactive digital art piece celebrating
+        the 10-year anniversary of Alphabet City.</p>
+      <h2>What does the Glyph represent?</h2>
+      <p>The glyph is the silhouette of क (ka) — The first consonant of the Devanagari
+        alphabet (equivalent to the letter K). Devanagari is a left-to-right abugida writing
+        system used primarily in the Indian subcontinent. It is the fourth most widely
+        adopted script and serves as the primary alphabet for over 120 languages, most
+        notably Hindi, Marathi, Nepali, and Sanskrit.</p>
+      <h2>How can I share a story?</h2>
+      <p>By web or in-person. If you are on the mailing list, you should have received a
+        unique code to use on this website, alphabetcityproject.com</p>
+      <p>We also take stories by text, email, or handwritten notes at the City Of Asylum
+        bookstore.</p>
+    </div>
+  </div>
+
+  {% if messages %}
+  <div class="index-toast" id="index-toast">
+    {% for message in messages %}{{ message }}{% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Hidden form used to POST a deletion (its action is set per-answer in JS). -->
+  <form id="delete-form" method="post" hidden>{% csrf_token %}</form>
+
+  <div id="delete-confirm" class="confirm-panel">
+    <div class="confirm-card" role="dialog" aria-modal="true">
+      <p class="confirm-text">Are you sure you want to delete your response?</p>
+      <div class="confirm-actions">
+        <button type="button" id="confirm-yes" class="confirm-btn">Yes</button>
+        <button type="button" id="confirm-no" class="confirm-btn">No</button>
+      </div>
+    </div>
+  </div>
+
+  {{ answers_data|json_script:"answers-data" }}
+  <script type="module" src="{% static 'alphabetcity/index/index-bundle.js' %}"></script>
+  <script>
+    (function () {
+      var toggle = document.getElementById("help-toggle");
+      var panel = document.getElementById("help-panel");
+      var close = document.getElementById("help-close");
+      toggle.addEventListener("click", function () { panel.classList.toggle("open"); });
+      close.addEventListener("click", function () { panel.classList.remove("open"); });
+      // Click the dim backdrop (but not the card) to close.
+      panel.addEventListener("click", function (e) {
+        if (e.target === panel) panel.classList.remove("open");
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") panel.classList.remove("open");
+      });
+
+      // Auto-dismiss the deletion/update notice after a few seconds.
+      var toast = document.getElementById("index-toast");
+      if (toast) {
+        setTimeout(function () {
+          toast.classList.add("hide");
+          setTimeout(function () { toast.remove(); }, 450);
+        }, 3500);
+      }
+    })();
+  </script>
 </body>
 
 </html>

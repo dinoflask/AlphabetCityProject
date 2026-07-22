@@ -96,18 +96,15 @@ body {
   line-height: 1.33;
   color: var(--ink);
   text-decoration: none;
-  /* Only the centered (focused) question is interactive; JS toggles .is-focused. */
-  pointer-events: none;
-  cursor: default;
+  /* Every question is clickable: the centered one is chosen, a grayed one
+     centers itself first (elder-friendly — no scrolling needed). */
+  cursor: pointer;
   /* JS sets translateY((index - progress) * step). */
   will-change: transform;
 }
 
-.choose__q.is-focused {
-  pointer-events: auto;
-  cursor: pointer;
-}
-
+/* Only the centered question reddens on hover — a grayed one just centers, so
+   red (which signals "will be chosen") would be misleading there. */
 .choose__q.is-focused:hover { color: var(--accent-red); }
 
 /* White fade when a question is chosen (no component movement). */

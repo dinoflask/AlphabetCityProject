@@ -277,3 +277,100 @@ body {
   .welcome__content,
   .welcome__fade { transition: none; }
 }
+
+/* -------------------------------------------------------------------------
+ * Privacy information popup — same card style as the Index help popup, but
+ * wide (almost full-screen) since the policy is long. Opened from the footer
+ * "PRIVACY INFORMATION" link (wired in welcome.js).
+ * ---------------------------------------------------------------------- */
+.privacy-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(40, 27, 0, 0.22);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.privacy-panel.open { opacity: 1; pointer-events: auto; }
+
+.privacy-card {
+  position: relative;
+  width: min(1150px, 94vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  overscroll-behavior: none; /* kill the elastic bounce that reveals the edge */
+  background: #fcf3d6;
+  border: 4px solid #664718;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  padding: clamp(28px, 4vw, 56px) clamp(28px, 5vw, 72px);
+  transform: scale(0.97);
+  transition: transform 0.2s ease;
+  text-align: left;
+}
+.privacy-panel.open .privacy-card { transform: scale(1); }
+
+.privacy-close {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  border: none;
+  background: none;
+  font-size: 30px;
+  line-height: 1;
+  color: #664718;
+  cursor: pointer;
+  font-family: sans-serif;
+}
+.privacy-close:hover { opacity: 0.6; }
+
+.privacy-card h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(24px, 2.4vw, 30px);
+  color: #2d1b00;
+  text-align: center;
+  margin: 0 0 6px;
+}
+.privacy-meta {
+  text-align: center;
+  color: #2b2b2b;
+}
+.privacy-card h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 24px;
+  color: #2d1b00;
+  margin: 30px 0 8px;
+}
+.privacy-card h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 18px;
+  color: #2d1b00;
+  margin: 18px 0 6px;
+  text-decoration: underline;
+}
+.privacy-card p,
+.privacy-card li,
+.privacy-card address {
+  font-family: "Montserrat", "Helvetica Neue", sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.55;
+  color: #2b2b2b;
+  margin: 0 0 12px;
+  font-style: normal;
+}
+.privacy-card ol {
+  margin: 0 0 12px;
+  padding-left: 30px;
+}
+.privacy-card li { margin-bottom: 8px; }
+.privacy-term { text-decoration: underline; font-weight: 500; }
+.privacy-copyright { margin-top: 24px; font-size: 15px; color: #555; }

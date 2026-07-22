@@ -24,12 +24,17 @@ class QuestionForm(forms.Form):
 
 class AnswerForm(ModelForm):
 
+    MIN_WORDS = 10
+
     class Meta:
         model = Answer
         fields = ["answer_text"]
 
-    def clean_question_pk(self):
-        pk = self.cleaned_data['question_pk']
-        if not Question.objects.filter(pk=pk).exists():
-            raise forms.ValidationError("Invalid question.")
-        return pk
+    def clean_answer_text(self):
+        text = self.cleaned_data["answer_text"]
+        words = len(text.split())
+        if words < self.MIN_WORDS:
+            raise forms.ValidationError(
+                f"Please write at least {self.MIN_WORDS} words (you have {words})."
+            )
+        return text

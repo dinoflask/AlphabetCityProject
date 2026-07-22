@@ -202,6 +202,17 @@
     }
 
     btn.addEventListener("click", leave);
+
+    // Pressing Enter anywhere does the same as clicking "Enter" — unless a control
+    // is focused (let its own activation handle it) or the privacy popup is open.
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+      var privacy = document.getElementById("privacy-panel");
+      if (privacy && privacy.classList.contains("open")) return;
+      var tag = document.activeElement && document.activeElement.tagName;
+      if (tag === "BUTTON" || tag === "A" || tag === "INPUT" || tag === "TEXTAREA") return;
+      leave();
+    });
   }
 
   // Wire hover + keyboard-focus to the same enter/leave handlers.
@@ -226,6 +237,26 @@
     setTimeout(function () { window.location.href = next; }, LEAVE_MS);
   }
 
+  /* 4. Privacy information popup ----------------------------------------- */
+  function setupPrivacy() {
+    var link = document.querySelector(".welcome__privacy");
+    var panel = document.getElementById("privacy-panel");
+    if (!link || !panel) return;
+    var close = document.getElementById("privacy-close");
+
+    function hide() { panel.classList.remove("open"); }
+
+    link.addEventListener("click", function (e) {
+      e.preventDefault();          // it's an in-page popup, not a navigation
+      panel.classList.add("open");
+    });
+    if (close) close.addEventListener("click", hide);
+    // Click the dim backdrop (but not the card) to close.
+    panel.addEventListener("click", function (e) { if (e.target === panel) hide(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") hide(); });
+  }
+
   animateTitle();
   setupEnter();
+  setupPrivacy();
 })();

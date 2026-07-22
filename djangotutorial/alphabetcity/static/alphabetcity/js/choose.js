@@ -1,10 +1,10 @@
 /*
  * Choose page interaction.
  *
- *  - Resist-then-snap stepper: the page has no native scroll. Wheel/touch intent
- *    accumulates as `tension`, which nudges the question track a fraction of a
- *    step (the resistance). Cross THRESHOLD -> snap to the next/prev question;
- *    release below it -> spring back to the current one.
+ *  - Resist-then-snap stepper: no native scroll. Wheel/touch accumulates as
+ *    `tension`; before a gesture's first snap the track shows a little "give"
+ *    (resistance), then snaps stepwise. Snaps queue and never interrupt each
+ *    other, so you always land centered — no mid-snap and no post-snap rebound.
  *  - Opacity comes from a CSS gradient mask on the viewport (focused = solid,
  *    neighbours fade, two steps away = invisible), so JS only sets transforms.
  *  - Three glyphs ride a quadratic-bezier arc through their Figma centres and
@@ -24,14 +24,16 @@
   var reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   /* Tunables ------------------------------------------------------------- */
-  var THRESHOLD = 90;     // wheel px to commit a snap
-  var RESIST = 0.28;      // fraction of a step the track gives below threshold
-  var SNAP_MS = 620;      // snap animation duration
-  var RELEASE_MS = 100;   // idle before sub-threshold tension springs back
-  var FADE_MS = 700;      // white fade before navigating to the chosen question
-  var GLYPH_T0 = 0.15;    // bezier param of the leftmost glyph (now Glyph 4)
-  var GLYPH_SLOT = 0.15;  // param gap between glyphs / per scroll step (lateral slide amount)
-  var GLYPH_CATCH = 0.09; // glyph follow speed; LOWER = more resistance/lag before they travel
+  var THRESHOLD = 150;       // wheel px to commit ONE snap step
+  var SNAP_MS = 620;        // snap animation duration
+  var SNAP_COOLDOWN = 650;  // ms after a snap before another can fire (blocks momentum double-snap)
+  var RESIST = 0.22;        // pre-snap "give": fraction of a step the track nudges before it snaps
+  var GESTURE_GAP = 150;    // ms of quiet that settles the give / resets the accumulator
+  var FADE_MS = 700;        // white fade before navigating to the chosen question
+  var GLYPH_T0 = 0.08;      // bezier param of the leftmost glyph (Glyph 4)
+  var GLYPH_SPACING = 0.21; // spread between glyphs along the path (BIGGER = more spread out)
+  var GLYPH_SLOT = 0.15;    // how far glyphs travel along the path per scroll step
+  var GLYPH_CATCH = 0.09;   // glyph follow speed; LOWER = more resistance/lag before they travel
 
   // Quadratic bezier (normalised viewport coords) through the three glyph
   // centres, extended past both ends so glyphs enter/exit off-screen.
@@ -43,9 +45,12 @@
   var index = 0;          // committed question
   var progress = 0;       // animated float position (drives questions)
   var glyphProgress = 0;  // damped follower of progress (drives glyphs, laggier)
-  var tension = 0;        // accumulated sub-threshold intent
+  var tension = 0;        // accumulated wheel delta toward the next snap
+  var stepQueue = 0;      // pending snap steps (signed)
+  var lastInputTime = 0;
+  var lastSnapTime = 0;   // for the post-snap cooldown
+  var settleTimer = null;
   var animating = false;
-  var releaseTimer = null;
   var leaving = false;
   var fadeEl = root.querySelector(".choose__fade");
 
@@ -67,10 +72,10 @@
   function renderGlyphs() {
     var vw = window.innerWidth, vh = window.innerHeight;
     for (var g = 0; g < glyphEls.length; g++) {
-      var t = GLYPH_T0 + g * GLYPH_SLOT + glyphProgress * GLYPH_SLOT;   // laggy glyphProgress
+      var t = GLYPH_T0 + g * GLYPH_SPACING + glyphProgress * GLYPH_SLOT;   // spacing = spread, slot = travel
       var p = bezier(t);
       var base = parseFloat(glyphEls[g].getAttribute("data-scale")) || 1;
-      var scale = (0.85 + clamp01((t - GLYPH_T0) / (GLYPH_SLOT * 3)) * 0.3) * base;
+      var scale = (0.85 + clamp01((t - GLYPH_T0) / (GLYPH_SPACING * 3)) * 0.3) * base;
       var fade = 1;
       if (t < 0.1) fade = clamp01((t + 0.02) / 0.12);
       else if (t > 0.9) fade = clamp01((1.02 - t) / 0.12);
@@ -126,7 +131,7 @@
 
   /* Snap animation ------------------------------------------------------- */
   function animateTo(target) {
-    if (reduceMotion) { progress = index = glyphProgress = target; render(); animating = false; setFocus(index); return; }
+    if (reduceMotion) { progress = index = glyphProgress = target; render(); animating = false; setFocus(index); processQueue(); return; }
     animating = true;
     setFocus(-1);                 // nothing clickable mid-snap
     var from = progress, dist = target - from, start = null;
@@ -137,71 +142,117 @@
       renderQuestions();
       ensureGlyphTick();
       if (k < 1) requestAnimationFrame(frame);
-      else { progress = index = target; animating = false; renderQuestions(); ensureGlyphTick(); setFocus(index); }
+      else { progress = index = target; animating = false; renderQuestions(); ensureGlyphTick(); setFocus(index); processQueue(); }
     }
     requestAnimationFrame(frame);
   }
 
-  /* Input ---------------------------------------------------------------- */
-  function commit(dir) {
-    clearTimeout(releaseTimer);
-    tension = 0;
-    var target = Math.max(0, Math.min(N - 1, index + dir));
-    animateTo(target);   // eases to a new index, or springs back to the same one
+  /* Input: step queue — no give, no rebound ------------------------------ */
+  // Play one queued step at a time, never interrupting a snap, so the user
+  // always lands on a centered question and never mid-snap.
+  function processQueue() {
+    if (animating || stepQueue === 0) return;
+    var dir = stepQueue > 0 ? 1 : -1;
+    var target = index + dir;
+    if (target < 0 || target > N - 1) { stepQueue = 0; return; }
+    stepQueue -= dir;
+    animateTo(target);
   }
 
-  function springBack() {
-    clearTimeout(releaseTimer);
-    tension = 0;
-    if (!animating) animateTo(index);
+  function enqueueStep(dir) {
+    var eventual = index + stepQueue + dir;          // don't queue steps past the ends
+    if (eventual < 0 || eventual > N - 1) return;
+    stepQueue += dir;
+    processQueue();
   }
 
-  function pushTension(delta) {
-    if (animating) return;
+  // Jump straight to a question (from a click on a grayed-out one).
+  function goTo(target) {
+    if (leaving || animating || stepQueue !== 0) return;
+    if (target < 0 || target > N - 1 || target === index) return;
+    tension = 0;
+    clearTimeout(settleTimer);
+    animateTo(target);
+  }
+
+  // Accumulate input. Below THRESHOLD the track shows a little "give" (initial
+  // resistance); crossing it snaps once. After a snap, SNAP_COOLDOWN swallows all
+  // input (incl. trackpad momentum) so ONE scroll = ONE snap — going two down
+  // needs a deliberate second scroll. Tension can't bank against an edge, so the
+  // ends rubber-band instead of stalling. Quiet for GESTURE_GAP settles the give.
+  function feedDelta(delta) {
+    var now = (window.performance && performance.now) ? performance.now() : Date.now();
+    if (now - lastInputTime > GESTURE_GAP) tension = 0;   // quiet gap resets the accumulator
+    lastInputTime = now;
+
+    if (now - lastSnapTime < SNAP_COOLDOWN) { tension = 0; return; }  // post-snap: swallow momentum
+    if (animating || stepQueue !== 0) { tension = 0; return; }
+
     tension += delta;
-    var give = Math.max(-1, Math.min(1, tension / THRESHOLD)) * RESIST;
-    if ((index === 0 && give < 0) || (index === N - 1 && give > 0)) give *= 0.35; // rubber-band edges
-    progress = index + give;
+    // Can't bank tension past an edge -> rubber-band, and reversing stays snappy.
+    if (index === 0) tension = Math.max(tension, -THRESHOLD * 0.5);
+    if (index === N - 1) tension = Math.min(tension, THRESHOLD * 0.5);
+
+    if (Math.abs(tension) >= THRESHOLD) {          // edges are capped, so dir is in-bounds
+      var dir = tension > 0 ? 1 : -1;
+      tension = 0;
+      lastSnapTime = now;
+      clearTimeout(settleTimer);
+      enqueueStep(dir);
+      return;
+    }
+
+    // Pre-snap give (initial resistance), then settle back when input stops.
+    progress = index + (tension / THRESHOLD) * RESIST;
     renderQuestions();
     ensureGlyphTick();
-    if (Math.abs(tension) >= THRESHOLD) {
-      commit(tension > 0 ? 1 : -1);
-    } else {
-      clearTimeout(releaseTimer);
-      releaseTimer = setTimeout(springBack, RELEASE_MS);
-    }
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(settle, GESTURE_GAP);
   }
 
-  function onWheel(e) { e.preventDefault(); pushTension(e.deltaY); }
+  // Input went quiet: relax any leftover give back to center, with no overshoot.
+  function settle() {
+    tension = 0;
+    if (!animating && stepQueue === 0 && progress !== index) animateTo(index);
+  }
+
+  function onWheel(e) { e.preventDefault(); feedDelta(e.deltaY); }
 
   function onKey(e) {
     if (e.key === "Enter") {
+      // If a question link is focused, let its own click handler run.
+      var ae = document.activeElement;
+      if (ae && ae.classList && ae.classList.contains("choose__q")) return;
       e.preventDefault();
       var q = questions[index];
       if (q) selectQuestion(q.getAttribute("href"));
       return;
     }
-    if (animating) return;
-    if (e.key === "ArrowDown" || e.key === "PageDown") { e.preventDefault(); commit(1); }
-    else if (e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); commit(-1); }
+    if (e.key === "ArrowDown" || e.key === "PageDown") { e.preventDefault(); enqueueStep(1); }
+    else if (e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); enqueueStep(-1); }
   }
 
   var touchY = null;
-  function onTouchStart(e) { touchY = e.touches[0].clientY; tension = 0; }
+  function onTouchStart(e) { touchY = e.touches[0].clientY; }
   function onTouchMove(e) {
-    if (touchY === null || animating) return;
+    if (touchY === null) return;
     e.preventDefault();
-    pushTension((touchY - e.touches[0].clientY) * 2.2 - tension); // set tension from drag distance
-    if (Math.abs(tension) >= THRESHOLD) touchY = null;
+    var y = e.touches[0].clientY;
+    feedDelta((touchY - y) * 2);   // drag up = advance
+    touchY = y;
   }
-  function onTouchEnd() { if (touchY !== null) { springBack(); touchY = null; } }
+  function onTouchEnd() { touchY = null; }
 
-  // Click selects only the focused (centered) question.
-  questions.forEach(function (q) {
+  // Click the centered question to choose it; click a grayed one to center it
+  // first (no scrolling needed).
+  questions.forEach(function (q, i) {
     q.addEventListener("click", function (e) {
-      if (!q.classList.contains("is-focused")) return;
       e.preventDefault();
-      selectQuestion(q.getAttribute("href"));
+      if (i === index && !animating && stepQueue === 0) {
+        selectQuestion(q.getAttribute("href"));
+      } else {
+        goTo(i);
+      }
     });
   });
 
