@@ -58,7 +58,9 @@ def login(request):
         form = LoginForm(request.POST)
         if form.is_valid():
             try:
-                resident = Resident.objects.get(code=form.cleaned_data["code"])
+                # Case-insensitive + trimmed so codes work however they're typed.
+                code = form.cleaned_data["code"].strip()
+                resident = Resident.objects.get(code__iexact=code)
             except Resident.DoesNotExist:
                 # Wrong guess: bump the strike counter; lock out on the 3rd.
                 attempts = (cache.get(attempts_key) or 0) + 1
