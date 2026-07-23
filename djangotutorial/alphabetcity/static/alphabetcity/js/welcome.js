@@ -259,4 +259,12 @@
   animateTitle();
   setupEnter();
   setupPrivacy();
+
+  // Returning here via Back can restore the page (from bfcache) mid-leave — slid
+  // up and faded to white. Clear that leave state whenever the page is shown.
+  window.addEventListener("pageshow", function () {
+    leaving = false;
+    var welcome = document.querySelector(".welcome");
+    if (welcome) welcome.classList.remove("is-leaving");
+  });
 })();

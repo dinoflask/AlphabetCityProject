@@ -30,6 +30,28 @@ html, body {
   overflow: hidden;
 }
 
+/* Back link, fixed top-left — returns to Choose (or Index when editing). */
+.answer__back {
+  position: fixed;
+  top: clamp(16px, 3vh, 28px);
+  left: clamp(16px, 3vw, 32px);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: "Montserrat", "Helvetica Neue", sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  text-decoration: none;
+  opacity: 0.72;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.answer__back:hover {
+  opacity: 1;
+  transform: translateX(-2px);
+}
+
 /* Shared procedural paper grain, very subtle. */
 .answer__texture {
   position: fixed;

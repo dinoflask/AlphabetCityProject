@@ -136,7 +136,7 @@ python manage.py createsuperuser       # optional, for /admin
 ```
 
 Quick smoke test: `gunicorn mysite.wsgi:application --bind 127.0.0.1:8000` then
-`curl -I localhost:8000/alphabetcity/` (expect a redirect/200). Ctrl-C to stop.
+`curl -I localhost:8000/` (expect a redirect/200). Ctrl-C to stop.
 
 ### A6. Gunicorn as a systemd service
 As **root**, create `/etc/systemd/system/acp.service`:
@@ -291,7 +291,7 @@ automatically. Update `ALLOWED_HOSTS` / `CSRF_TRUSTED_ORIGINS` to include it.
 
 ## Post-deploy checklist (either option)
 
-- [ ] `https://yourdomain/alphabetcity/` loads the welcome page.
+- [ ] `https://yourdomain/` loads the welcome page (Index at `/index`, etc.).
 - [ ] Fonts, garden background, and answer dots render (front-end bundle + assets
       load — check the browser Network tab for any `404`s under
       `/static/alphabetcity/index/`).

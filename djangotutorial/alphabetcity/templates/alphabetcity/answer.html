@@ -19,6 +19,14 @@
   <main class="answer">
     <div class="answer__texture" aria-hidden="true"></div>
 
+    <a class="answer__back" href="{{ back_url }}" aria-label="Back">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+      Back
+    </a>
+
     <h3 class="answer__question">{{ question.question_text }}</h3>
 
     <form class="answer__form" method="post" action="{{ form_action }}">

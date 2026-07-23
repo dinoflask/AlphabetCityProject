@@ -172,6 +172,7 @@ def answer_question(request, question_pk):
         "grant_writing": grant_writing,
         "form_action": reverse("answer", args=[question.pk]),
         "submit_label": "SEND",
+        "back_url": reverse("choose"),
     })
 
 # Post-Answer
@@ -206,6 +207,7 @@ def edit_answer(request, answer_id):
         "grant_writing": a.resident.grant_writing if a.resident_id else False,
         "form_action": reverse("edit", args=[a.id]),
         "submit_label": "SAVE",
+        "back_url": reverse("index"),
     })
 
 

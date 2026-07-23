@@ -265,4 +265,13 @@
 
   render();
   setFocus(index);   // question 0 starts centered/clickable
+
+  // When returning here via the browser Back button, the page is often restored
+  // from the bfcache with the white leave-fade still active (blank screen) and
+  // `leaving` stuck true. Reset that state whenever the page is shown.
+  window.addEventListener("pageshow", function () {
+    leaving = false;
+    if (fadeEl) fadeEl.classList.remove("is-active");
+    render();
+  });
 })();
