@@ -217,6 +217,20 @@ html, body {
 /* Word count turns red until the minimum is met (class is on the #answer-count span). */
 #answer-count.is-short { color: var(--accent-red); }
 
+/* Secondary "skip to the website" link — same italic/underline style as the
+   code page's "Not answering? See the website" link. */
+.answer__website {
+  margin-top: clamp(0.75rem, 2vh, 1.25rem);
+  font-family: var(--font-display);
+  font-style: italic;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  font-size: clamp(0.88rem, 1.05vw, 1.2rem);
+  color: var(--ink);
+  transition: color 0.15s ease;
+}
+.answer__website:hover { color: var(--accent-red); }
+
 .answer__messages {
   list-style: none;
   padding: 0;

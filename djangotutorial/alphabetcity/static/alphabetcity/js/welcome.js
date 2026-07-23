@@ -261,10 +261,16 @@
   setupPrivacy();
 
   // Returning here via Back can restore the page (from bfcache) mid-leave — slid
-  // up and faded to white. Clear that leave state whenever the page is shown.
+  // up and faded to white. Clear it INSTANTLY (transitions disabled) so Back
+  // doesn't replay the leave animation; forward navigation still animates.
   window.addEventListener("pageshow", function () {
     leaving = false;
     var welcome = document.querySelector(".welcome");
-    if (welcome) welcome.classList.remove("is-leaving");
+    if (!welcome) return;
+    var animated = welcome.querySelectorAll(".welcome__content, .welcome__fade");
+    animated.forEach(function (el) { el.style.transition = "none"; });
+    welcome.classList.remove("is-leaving");
+    void welcome.offsetWidth;       // commit before restoring transitions
+    animated.forEach(function (el) { el.style.transition = ""; });
   });
 })();

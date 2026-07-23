@@ -267,11 +267,17 @@
   setFocus(index);   // question 0 starts centered/clickable
 
   // When returning here via the browser Back button, the page is often restored
-  // from the bfcache with the white leave-fade still active (blank screen) and
-  // `leaving` stuck true. Reset that state whenever the page is shown.
+  // from the bfcache with the white leave-fade still active. Clear it INSTANTLY
+  // (transition disabled) so Back doesn't replay the fade — forward navigation
+  // still fades normally.
   window.addEventListener("pageshow", function () {
     leaving = false;
-    if (fadeEl) fadeEl.classList.remove("is-active");
+    if (fadeEl) {
+      fadeEl.style.transition = "none";
+      fadeEl.classList.remove("is-active");
+      void fadeEl.offsetWidth;      // commit the change before restoring the transition
+      fadeEl.style.transition = "";
+    }
     render();
   });
 })();
