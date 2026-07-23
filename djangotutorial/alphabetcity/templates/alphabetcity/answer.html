@@ -27,6 +27,14 @@
       Back
     </a>
 
+    <a class="answer__forward" href="{% url 'index' %}" aria-label="See the website first">
+      See the website first
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9 18l6-6-6-6" />
+      </svg>
+    </a>
+
     <h3 class="answer__question">{{ question.question_text }}</h3>
 
     <form class="answer__form" method="post" action="{{ form_action }}">
@@ -63,8 +71,6 @@
       </label>
 
       <button class="answer__send" type="submit">{{ submit_label|default:"SEND" }}</button>
-
-      <a class="answer__website" href="{% url 'index' %}">I want to see the website first</a>
 
       <p class="answer__note">*WE REQUIRE YOU NOT INCLUDE NAMES, OR OTHER PERSONAL INFORMATION.
         THERE IS A ZERO-TOLERANCE POLICY FOR BULLYING, HARASSMENT, OR SPAM.</p>

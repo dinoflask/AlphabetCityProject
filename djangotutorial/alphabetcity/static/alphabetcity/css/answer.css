@@ -52,6 +52,28 @@ html, body {
   transform: translateX(-2px);
 }
 
+/* "See the website first" link, fixed top-right — same style, forward arrow. */
+.answer__forward {
+  position: fixed;
+  top: clamp(16px, 3vh, 28px);
+  right: clamp(16px, 3vw, 32px);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: "Montserrat", "Helvetica Neue", sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  text-decoration: none;
+  opacity: 0.72;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.answer__forward:hover {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
 /* Shared procedural paper grain, very subtle. */
 .answer__texture {
   position: fixed;
@@ -216,20 +238,6 @@ html, body {
 
 /* Word count turns red until the minimum is met (class is on the #answer-count span). */
 #answer-count.is-short { color: var(--accent-red); }
-
-/* Secondary "skip to the website" link — same italic/underline style as the
-   code page's "Not answering? See the website" link. */
-.answer__website {
-  margin-top: clamp(0.75rem, 2vh, 1.25rem);
-  font-family: var(--font-display);
-  font-style: italic;
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
-  font-size: clamp(0.88rem, 1.05vw, 1.2rem);
-  color: var(--ink);
-  transition: color 0.15s ease;
-}
-.answer__website:hover { color: var(--accent-red); }
 
 .answer__messages {
   list-style: none;
