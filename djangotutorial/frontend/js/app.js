@@ -393,7 +393,11 @@ export default class Sketch {
       // Hovering a different answer dot immediately switches to it (no click). In
       // screensaver mode hover is ignored — details are cycled automatically. If
       // the cursor isn't over any dot, the current menu stays locked & following.
-      if (!this.autoMode && !this.overMenu) {
+      // Also freeze switching while an overlay (help / delete confirm) is open.
+      const overlayOpen =
+        (this.helpPanel && this.helpPanel.classList.contains("open")) ||
+        (this.deleteConfirm && this.deleteConfirm.classList.contains("open"));
+      if (!this.autoMode && !this.overMenu && !overlayOpen) {
         const near = this.nearestAnswer();
         if (near >= 0 && near !== this.hoverIndex) this.lockTo(near);
       }
@@ -536,6 +540,8 @@ export default class Sketch {
       if (this._deleteUrl && this.deleteConfirm) this.deleteConfirm.classList.add("open");
     });
 
+    // Overlays that should freeze dot-hover while open (help + delete confirm).
+    this.helpPanel = document.getElementById("help-panel");
     // Delete-confirmation popup (lives in the Django template).
     this.deleteForm = document.getElementById("delete-form");
     this.deleteConfirm = document.getElementById("delete-confirm");
