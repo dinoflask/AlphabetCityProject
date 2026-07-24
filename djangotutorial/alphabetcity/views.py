@@ -123,9 +123,21 @@ def index(request):
             item["deleteUrl"] = reverse("delete", args=[a.id])
         answers_data.append(item)
 
+    # A signed-in resident gets a "Back to my response" link in the corner. It
+    # points to their submitted answer (edit page) if they have one; otherwise to
+    # the answer page they were last writing on before jumping over to browse.
+    my_response_url = None
+    if resident_id:
+        own = Answer.objects.filter(resident_id=resident_id).order_by("-pub_date").first()
+        if own:
+            my_response_url = reverse("edit", args=[own.id])
+        else:
+            my_response_url = request.session.get("response_url")
+
     context = {
         "all_answers_list": all_answers_list,
         "answers_data": answers_data,  # rendered via {{ ...|json_script }}
+        "my_response_url": my_response_url,
     }
     return render(request, "alphabetcity/index.html", context)
 
@@ -168,6 +180,9 @@ def answer_question(request, question_pk):
             return redirect('index')
     else:
         form = AnswerForm()
+    # Remember this page so "Back to my response" on the index can return here
+    # if they hop over to browse before submitting.
+    request.session["response_url"] = request.path
     return render(request, "alphabetcity/answer.html", {
         "form": form,
         "question": question,
@@ -202,6 +217,8 @@ def edit_answer(request, answer_id):
     else:
         form = AnswerForm(instance=a)  # Populates form with existing data
 
+    # Remember this page for the index's "Back to my response" link.
+    request.session["response_url"] = request.path
     # Reuse the Answer page, pre-filled, posting back to this edit URL.
     return render(request, "alphabetcity/answer.html", {
         "form": form,

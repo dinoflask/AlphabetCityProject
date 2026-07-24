@@ -120,8 +120,26 @@ body {
 
 .choose__fade.is-active { opacity: 1; }
 
+/* Arrive from white (continues the Code page's leave-fade). Runs on fresh loads;
+   bfcache restores (Back) don't replay CSS animations, so Back won't flash. */
+.choose__enter {
+  position: fixed;
+  inset: 0;
+  z-index: 11;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  animation: choose-enter 500ms ease forwards;
+}
+
+@keyframes choose-enter {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .choose__fade { transition: none; }
+  .choose__enter { animation: none; opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

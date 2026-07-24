@@ -37,13 +37,38 @@
     /* The "?" glyph in the help button. */
     .help-toggle { font-family: "Playfair Display", Georgia, serif; font-size: 32px; line-height: 1; }
 
-    /* Screensaver button — same box, on its own in the top-right corner. */
-    .screensaver-toggle { position: fixed; top: 24px; right: 24px; z-index: 10; }
+    /* "Back to my response" — plain text pinned to the top-right corner. */
+    .corner-link {
+      position: fixed; top: 24px; right: 24px; z-index: 10;
+      display: flex; align-items: center; gap: 6px;
+      height: 65px;
+      color: #2D1B00; text-decoration: none;
+      font-family: "Montserrat", "Helvetica Neue", sans-serif; font-size: 15px; font-weight: 500;
+      white-space: nowrap;
+    }
+    .corner-link:hover { opacity: 0.6; }
 
-    /* In screensaver mode every corner icon fades away. */
-    .corner-btns, .screensaver-toggle { transition: opacity 0.4s ease, transform 0.15s ease, filter 0.15s ease; }
+    /* "Press Esc to exit" notice — same text style as the corner link, pinned to
+       the bottom, fading itself in and out once when screensaver mode starts. */
+    .screensaver-hint {
+      position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+      z-index: 15;
+      font-family: "Montserrat", "Helvetica Neue", sans-serif; font-size: 15px; font-weight: 500;
+      color: #2D1B00; letter-spacing: 0.02em; white-space: nowrap;
+      opacity: 0; pointer-events: none;
+    }
+    .screensaver-hint.show { animation: hintFade 3.6s ease forwards; }
+    @keyframes hintFade {
+      0%   { opacity: 0; }
+      12%  { opacity: 1; }
+      70%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* In screensaver mode every corner icon / link fades away. */
+    .corner-btns, .corner-link { transition: opacity 0.4s ease, transform 0.15s ease, filter 0.15s ease; }
     body.screensaver .corner-btns,
-    body.screensaver .screensaver-toggle { opacity: 0; pointer-events: none; }
+    body.screensaver .corner-link { opacity: 0; pointer-events: none; }
 
     /* Centered help panel */
     .help-panel {
@@ -138,18 +163,29 @@
       </svg>
     </a>
     <button id="help-toggle" class="corner-btn help-toggle" aria-label="Help">?</button>
+    <button id="screensaver-toggle" class="corner-btn" aria-label="Screensaver mode">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2D1B00"
+           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 9V4h5" />
+        <path d="M20 9V4h-5" />
+
+        <path d="M4 15v5h5" />
+        <path d="M20 15v5h-5" />
+      </svg>
+    </button>
   </div>
 
-  <button id="screensaver-toggle" class="corner-btn screensaver-toggle" aria-label="Screensaver mode">
-    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2D1B00"
-         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M4 9V4h5" />
-      <path d="M20 9V4h-5" />
-
-      <path d="M4 15v5h5" />
-      <path d="M20 15v5h-5" />
+  {% if my_response_url %}
+  <a href="{{ my_response_url }}" class="corner-link" aria-label="Back to my response">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D1B00"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M15 18l-6-6 6-6" />
     </svg>
-  </button>
+    Back to my response
+  </a>
+  {% endif %}
+
+  <div id="screensaver-hint" class="screensaver-hint" aria-hidden="true">Press Esc to exit</div>
 
   <div id="help-panel" class="help-panel">
     <div class="help-card" role="dialog" aria-modal="true" aria-label="Help">

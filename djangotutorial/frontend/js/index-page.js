@@ -17,35 +17,25 @@ const dots = dotsEl ? new Sketch({ dom: dotsEl, answers }) : null;
 // ---------------------------------------------------------------------------
 // Screensaver mode: click the top-right button to zoom the glyph + garden in a
 // touch, hide the cursor and UI icons, and auto-cycle each answer's details
-// every 10s. Any input (move / key / click / scroll) eases everything back.
+// every 10s. Only the Escape key eases everything back — a "Press Esc to exit"
+// notice fades in and out at the bottom when it starts, so moving the mouse or
+// pressing other keys doesn't kick you out.
 // ---------------------------------------------------------------------------
 const toggle = document.getElementById("screensaver-toggle");
 if (toggle && dots) {
   const ZOOM = 1.3;        // subtle push-in
   const CYCLE_MS = 10000;  // one answer detail every 10s
   const FIRST_MS = 1200;   // first detail shortly after the zoom settles
-  const ARM_MS = 400;      // ignore the launching interaction this long
+
+  const hint = document.getElementById("screensaver-hint");
 
   let active = false;
   let cycleTimer = null;
   let firstTimer = null;
-  let armTimer = null;
 
-  function armExit() {
-    window.addEventListener("mousemove", onActivity, { once: true });
-    window.addEventListener("mousedown", onActivity, { once: true });
-    window.addEventListener("keydown", onActivity, { once: true });
-    window.addEventListener("wheel", onActivity, { once: true });
-    window.addEventListener("touchstart", onActivity, { once: true });
-  }
-  function disarmExit() {
-    window.removeEventListener("mousemove", onActivity);
-    window.removeEventListener("mousedown", onActivity);
-    window.removeEventListener("keydown", onActivity);
-    window.removeEventListener("wheel", onActivity);
-    window.removeEventListener("touchstart", onActivity);
-  }
-  function onActivity() { exit(); }
+  function onKeyExit(e) { if (e.key === "Escape") exit(); }
+  function armExit() { window.addEventListener("keydown", onKeyExit); }
+  function disarmExit() { window.removeEventListener("keydown", onKeyExit); }
 
   function enter() {
     if (active) return;
@@ -58,6 +48,13 @@ if (toggle && dots) {
     document.body.classList.add("screensaver"); // fades out the corner icons (CSS)
     document.body.style.cursor = "none";
 
+    // Replay the "Press Esc to exit" fade-in/out.
+    if (hint) {
+      hint.classList.remove("show");
+      void hint.offsetWidth;   // reflow so the animation restarts
+      hint.classList.add("show");
+    }
+
     dots.setZoom(ZOOM);
     dots.setAutoMode(true);
     if (garden) { garden.setZoom(ZOOM); garden.triggerBurst(); }
@@ -65,8 +62,7 @@ if (toggle && dots) {
     firstTimer = setTimeout(function () { if (active) dots.autoSelectNext(); }, FIRST_MS);
     cycleTimer = setInterval(function () { if (active) dots.autoSelectNext(); }, CYCLE_MS);
 
-    // Arm exit after the launching click is over so it doesn't self-cancel.
-    armTimer = setTimeout(armExit, ARM_MS);
+    armExit();
   }
 
   function exit() {
@@ -74,9 +70,10 @@ if (toggle && dots) {
     active = false;
     disarmExit();
     clearTimeout(firstTimer);
-    clearTimeout(armTimer);
     clearInterval(cycleTimer);
     cycleTimer = null;
+
+    if (hint) hint.classList.remove("show");
 
     document.body.classList.remove("screensaver");
     document.body.style.cursor = "";

@@ -20,14 +20,15 @@
   <main class="code">
     <div class="code__texture" aria-hidden="true"></div>
 
-    <form class="code__form" method="post" action="{% url 'login' %}">
+    <form class="code__form" method="post" action="{% url 'login' %}"
+          {% if messages or form.code.errors %}data-error="1"{% endif %}>
       {% csrf_token %}
       <div class="code__field">
         <input class="code__input" id="code-input" type="text" name="code"
                inputmode="text" maxlength="6" minlength="6" autocomplete="off"
                spellcheck="false" autofocus aria-label="Enter your code"
                value="{{ form.code.value|default:'' }}" />
-        <label class="code__label" for="code-input">Enter Your Code</label>
+        <label class="code__label" for="code-input" role="button" tabindex="0">Enter Your Code</label>
       </div>
 
       {% if messages or form.code.errors %}
@@ -46,6 +47,8 @@
 
     <div class="code__fade" aria-hidden="true"></div>
   </main>
+
+  <script src="{% static 'alphabetcity/js/code.js' %}"></script>
 </body>
 
 </html>
