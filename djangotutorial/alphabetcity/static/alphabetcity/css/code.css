@@ -154,7 +154,6 @@ body {
   inset: 0;
   z-index: 5;
   background: #fff;
-  opacity: 0;                       /* base state so removing the animation stays clear */
   pointer-events: none;
   animation: code-fade-in 700ms ease forwards;
 }
@@ -164,16 +163,8 @@ body {
   to   { opacity: 0; }
 }
 
-/* Leaving to the Choose page: fade back up to white (added by code.js). */
-.code__fade.is-leaving {
-  animation: none;
-  opacity: 1;
-  transition: opacity 450ms ease-in-out;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .code__fade { animation: none; opacity: 0; }
-  .code__fade.is-leaving { transition: none; opacity: 0; }
   .code__input { transition: none; }
   .code__input--shake { animation: none; }
 }
