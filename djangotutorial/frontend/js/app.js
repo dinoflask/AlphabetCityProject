@@ -626,8 +626,9 @@ export default class Sketch {
 
     const GAP = 70, PAD = 14;
     // Reserved band at the top for the corner buttons ("header") so boxes never
-    // slide up under the home/help/fullscreen icons or the top-right links.
-    const TOP_INSET = 100;
+    // slide up under the home/help/fullscreen icons or the top-right links. In
+    // screensaver mode those icons are hidden, so boxes may use the whole height.
+    const TOP_INSET = this.autoMode ? PAD : 100;
 
     // Dynamic sizing: never let the box exceed the viewport. It's a flex column
     // that clips to this max size (the body scrolls), so the measured BW/BH below
