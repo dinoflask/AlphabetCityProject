@@ -24,7 +24,7 @@ const dots = dotsEl ? new Sketch({ dom: dotsEl, answers }) : null;
 const toggle = document.getElementById("screensaver-toggle");
 if (toggle && dots) {
   const ZOOM = 1.3;        // subtle push-in
-  const CYCLE_MS = 10000;  // one answer detail every 10s
+  const CYCLE_MS = 15000;  // one answer detail every 15s
   const FIRST_MS = 1200;   // first detail shortly after the zoom settles
 
   const hint = document.getElementById("screensaver-hint");
