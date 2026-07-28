@@ -4491,7 +4491,10 @@ void main() {
       .dm-actions button{border:none;background:none;cursor:pointer;padding:0;color:#654618;line-height:0;display:flex;}
       .dm-actions button:hover{opacity:.55;}
       .dm-edit svg,.dm-delete svg{width:16px;height:16px;display:block;}
-      .dm-edit,.dm-delete{display:none;}
+      /* Hidden unless the box is the signed-in resident's own answer. The
+         '.dm-box' prefix raises specificity above '.dm-actions button' so the
+         hide actually wins; '.dm-box.own' then wins over that to show them. */
+      .dm-box .dm-edit,.dm-box .dm-delete{display:none;}
       .dm-box.own .dm-edit,.dm-box.own .dm-delete{display:flex;}
       .dm-close{font-size:20px;line-height:1;font-family:sans-serif;color:#654618;}
       .dm-title{flex:0 0 auto;font-family:"Playfair Display",Georgia,serif;font-weight:600;font-size:16px;line-height:1.35;color:#000;margin:0 0 10px;}
