@@ -138,9 +138,9 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-family: "Montserrat", "Helvetica Neue", sans-serif;
-  font-size: 15px;
-  letter-spacing: 0.04em;
+  font-family: var(--font-display);
+  font-size: clamp(0.95rem, 1.15vw, 1.35rem);   /* matches "Enter Your Code" */
+  letter-spacing: normal;
   color: var(--ink);
   text-decoration: none;
   opacity: 0.72;

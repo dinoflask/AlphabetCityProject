@@ -39,9 +39,9 @@ html, body {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-family: "Montserrat", "Helvetica Neue", sans-serif;
-  font-size: 15px;
-  letter-spacing: 0.04em;
+  font-family: var(--font-display);
+  font-size: clamp(0.95rem, 1.15vw, 1.35rem);   /* matches "Enter Your Code" */
+  letter-spacing: normal;
   color: var(--ink);
   text-decoration: none;
   opacity: 0.72;
@@ -61,9 +61,9 @@ html, body {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-family: "Montserrat", "Helvetica Neue", sans-serif;
-  font-size: 15px;
-  letter-spacing: 0.04em;
+  font-family: var(--font-display);
+  font-size: clamp(0.95rem, 1.15vw, 1.35rem);   /* matches "Enter Your Code" */
+  letter-spacing: normal;
   color: var(--ink);
   text-decoration: none;
   opacity: 0.72;
@@ -151,14 +151,14 @@ html, body {
   width: 100%;
   text-align: right;
   font-family: "Montserrat", sans-serif;
-  font-size: 16px;
+  font-size: 13px;
   color: var(--ink);
   margin-top: 0.5rem;
   font-variant-numeric: tabular-nums;
 }
 
 /* Grant-writing consent: a large custom checkbox (yellow fill when checked). */
-.answer__consent {
+/* .answer__consent {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -166,6 +166,8 @@ html, body {
   margin-top: clamp(1rem, 3vh, 2rem);
   cursor: pointer;
   text-align: left;
+  line-height: 1.6;
+    letter-spacing: 0.02em;
 }
 .answer__consent-input {
   position: absolute;
@@ -202,14 +204,14 @@ html, body {
   font-size: 17px;
   line-height: 1.4;
   color: var(--ink);
-}
+} */
 
 .answer__send {
   margin-top: clamp(1rem, 3vh, 2rem);
-  font-family: "Montserrat", sans-serif;
-  font-size: 16px;
+  font-family: var(--font-display);            /* matches "Enter Your Code" */
+  font-size: clamp(0.95rem, 1.15vw, 1.35rem);
   font-weight: 500;
-  letter-spacing: 0.14em;
+  letter-spacing: normal;
   color: var(--ink);
   background: #ffd155;
   border: 2px solid var(--ink);
@@ -249,6 +251,8 @@ html, body {
 .answer__message {
   font-family: "Montserrat", sans-serif;
   font-size: 13px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
   color: var(--accent-red);
 }
 
@@ -261,7 +265,7 @@ html, body {
   max-width: min(1039px, 92vw);
   text-align: center;
   font-family: "Montserrat", sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
   letter-spacing: 0.02em;
   color: #333;

@@ -475,7 +475,7 @@ export default class Sketch {
       .dm-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:0;opacity:0;transition:opacity .2s ease;}
       .dm-svg.show{opacity:1;}
       .dm-stem{fill:none;stroke:#654618;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));}
-      .dm-box{position:absolute;z-index:3;width:300px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;
+      .dm-box{position:absolute;z-index:3;width:400px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;
         background:#fff5da;border:3px solid #654618;border-radius:20px;
         box-shadow:4px 8px 6px rgba(0,0,0,.22);padding:16px 24px 24px;opacity:0;pointer-events:auto;will-change:transform,opacity;}
       .dm-actions{flex:0 0 auto;display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-bottom:6px;min-height:20px;}
@@ -485,9 +485,9 @@ export default class Sketch {
       .dm-edit,.dm-delete{display:none;}
       .dm-box.own .dm-edit,.dm-box.own .dm-delete{display:flex;}
       .dm-close{font-size:20px;line-height:1;font-family:sans-serif;color:#654618;}
-      .dm-title{flex:0 0 auto;font-family:"Playfair Display",Georgia,serif;font-weight:500;font-size:18px;line-height:1.28;color:#000;margin:0 0 10px;}
+      .dm-title{flex:0 0 auto;font-family:"Playfair Display",Georgia,serif;font-weight:600;font-size:16px;line-height:1.35;color:#000;margin:0 0 10px;}
       .dm-rule{flex:0 0 auto;width:26px;height:2px;background:#000;margin:0 0 12px;}
-      .dm-body{flex:1 1 auto;min-height:0;font-family:"Montserrat","Helvetica Neue",sans-serif;font-weight:400;font-size:13.5px;line-height:1.45;color:#111;
+      .dm-body{flex:1 1 auto;min-height:0;font-family:"Montserrat","Helvetica Neue",sans-serif;font-weight:400;font-size:16px;line-height:1.5;color:#111;
         overflow-y:auto;}
       `;
       document.head.appendChild(s);
@@ -625,12 +625,16 @@ export default class Sketch {
     const s = this.worldToScreen(w.x, w.y, w.z); // dot on screen
 
     const GAP = 70, PAD = 14;
+    // Reserved band at the top for the corner buttons ("header") so boxes never
+    // slide up under the home/help/fullscreen icons or the top-right links.
+    const TOP_INSET = 100;
 
     // Dynamic sizing: never let the box exceed the viewport. It's a flex column
     // that clips to this max size (the body scrolls), so the measured BW/BH below
-    // stay within bounds and the position clamp keeps it fully on-screen.
+    // stay within bounds and the position clamp keeps it fully on-screen. Height
+    // is capped to the area BELOW the header so a tall box can't reach the top.
     this.menuBox.style.maxWidth = (this.width - 2 * PAD) + "px";
-    this.menuBox.style.maxHeight = (this.height - 2 * PAD) + "px";
+    this.menuBox.style.maxHeight = (this.height - TOP_INSET - PAD) + "px";
 
     const BW = this.menuBox.offsetWidth || 300;
     const BH = this.menuBox.offsetHeight || 260;
@@ -641,7 +645,7 @@ export default class Sketch {
     let bx = placeLeft ? s.x - GAP - BW : s.x + GAP;
     let by = s.y - BH * 0.4;
     bx = Math.max(PAD, Math.min(this.width - BW - PAD, bx));
-    by = Math.max(PAD, Math.min(this.height - BH - PAD, by));
+    by = Math.max(TOP_INSET, Math.min(this.height - BH - PAD, by));
 
     // Ease the box toward its target so it follows the drifting dot smoothly.
     if (!this.boxPos) this.boxPos = { x: bx, y: by };

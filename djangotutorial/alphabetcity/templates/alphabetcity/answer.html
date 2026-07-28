@@ -59,7 +59,7 @@
       </ul>
       {% endif %}
 
-      <label class="answer__consent">
+      <!-- <label class="answer__consent">
         <input class="answer__consent-input" type="checkbox" name="grant_writing"
                {% if grant_writing %}checked{% endif %} />
         <span class="answer__consent-box" aria-hidden="true">
@@ -69,12 +69,12 @@
           </svg>
         </span>
         <span class="answer__consent-label">Allow us to include your response for grant-writing purposes!</span>
-      </label>
+      </label> -->
 
-      <button class="answer__send" type="submit">{{ submit_label|default:"SEND" }}</button>
+      <button class="answer__send" type="submit">{{ submit_label|default:"Send" }}</button>
 
-      <p class="answer__note">*WE REQUIRE YOU NOT INCLUDE NAMES, OR OTHER PERSONAL INFORMATION.
-        THERE IS A ZERO-TOLERANCE POLICY FOR BULLYING, HARASSMENT, OR SPAM.</p>
+      <p class="answer__note">*ANSWERS WILL REMAIN ANONYMOUS AND WILL BE PUBLISHED ON A PUBLIC PAGE. 
+      WE REQUIRE YOU NOT INCLUDE NAMES, OR OTHER PERSONAL INFORMATION.</p>
     </form>
   </main>
 

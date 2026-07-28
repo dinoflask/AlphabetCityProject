@@ -38,6 +38,25 @@ def _client_ip(request):
     return request.META.get("REMOTE_ADDR", "")
 
 
+def _session_resident(request):
+    """The Resident signed in on this session, or None."""
+    rid = request.session.get("resident_id")
+    if not rid:
+        return None
+    return Resident.objects.filter(pk=rid).first()
+
+
+def _owns_answer(resident, answer):
+    """True only when the signed-in resident's code matches the answer owner's
+    code. Ownership is keyed on the code (case-insensitively) so no one can edit
+    or delete a response that isn't theirs."""
+    if not resident or not answer.resident_id:
+        return False
+    owner_code = (answer.resident.code or "").strip().upper()
+    my_code = (resident.code or "").strip().upper()
+    return bool(owner_code) and owner_code == my_code
+
+
 def login(request):
     if request.method == "POST":
         ip = _client_ip(request)
@@ -99,16 +118,19 @@ def login(request):
 
 
 def index(request):
-    all_answers_list = Answer.objects.select_related("question").order_by("-pub_date")
+    all_answers_list = (
+        Answer.objects.select_related("question", "resident").order_by("-pub_date")
+    )
 
     # Give each question a stable 0-based index so the front-end can color its
     # dots (0 -> red, 1 -> yellow, 2 -> brown, then cycling).
     q_index = {q.id: i for i, q in enumerate(Question.objects.order_by("id"))}
 
-    # Each answer becomes one interactive dot on the Index page. Answers belonging
-    # to the signed-in resident are flagged "own" and carry edit/delete URLs so the
-    # front-end can auto-open that dot and show the pencil/trash controls.
-    resident_id = request.session.get("resident_id")
+    # Each answer becomes one interactive dot on the Index page. Only answers whose
+    # owner code matches the signed-in resident are flagged "own" and carry
+    # edit/delete URLs, so the pencil/trash controls appear on that resident's
+    # bubbles alone.
+    resident = _session_resident(request)
     answers_data = []
     for a in all_answers_list:
         item = {
@@ -117,7 +139,7 @@ def index(request):
             "title": a.question.question_text,
             "body": a.answer_text,
         }
-        if resident_id and a.resident_id == resident_id:
+        if _owns_answer(resident, a):
             item["own"] = True
             item["editUrl"] = reverse("edit", args=[a.id])
             item["deleteUrl"] = reverse("delete", args=[a.id])
@@ -127,8 +149,8 @@ def index(request):
     # points to their submitted answer (edit page) if they have one; otherwise to
     # the answer page they were last writing on before jumping over to browse.
     my_response_url = None
-    if resident_id:
-        own = Answer.objects.filter(resident_id=resident_id).order_by("-pub_date").first()
+    if resident:
+        own = Answer.objects.filter(resident=resident).order_by("-pub_date").first()
         if own:
             my_response_url = reverse("edit", args=[own.id])
         else:
@@ -188,7 +210,7 @@ def answer_question(request, question_pk):
         "question": question,
         "grant_writing": grant_writing,
         "form_action": reverse("answer", args=[question.pk]),
-        "submit_label": "SEND",
+        "submit_label": "Send",
         "back_url": reverse("choose"),
     })
 
@@ -199,8 +221,8 @@ def detail_answer(request, answer_id):
 
 def edit_answer(request, answer_id):
     a = get_object_or_404(Answer, id=answer_id)
-    resident_id = request.session.get('resident_id')
-    if not resident_id or a.resident_id != resident_id:
+    resident = _session_resident(request)
+    if not _owns_answer(resident, a):
         messages.error(request, "Can't edit another person's post!")
         return redirect('index')
 
@@ -209,9 +231,8 @@ def edit_answer(request, answer_id):
         if form.is_valid():
             form.save()
             # Keep grant-writing consent in sync with the checkbox.
-            if a.resident_id:
-                a.resident.grant_writing = "grant_writing" in request.POST
-                a.resident.save(update_fields=["grant_writing"])
+            resident.grant_writing = "grant_writing" in request.POST
+            resident.save(update_fields=["grant_writing"])
             messages.success(request, "Your response was updated")
             return redirect('index')
     else:
@@ -223,17 +244,17 @@ def edit_answer(request, answer_id):
     return render(request, "alphabetcity/answer.html", {
         "form": form,
         "question": a.question,
-        "grant_writing": a.resident.grant_writing if a.resident_id else False,
+        "grant_writing": resident.grant_writing,
         "form_action": reverse("edit", args=[a.id]),
-        "submit_label": "SAVE",
-        "back_url": reverse("index"),
+        "submit_label": "Save",
+        "back_url": reverse("choose"),
     })
 
 
 def delete_answer(request, answer_id):
     a = get_object_or_404(Answer, id=answer_id)
-    resident_id = request.session.get('resident_id')
-    if not resident_id or a.resident_id != resident_id:
+    resident = _session_resident(request)
+    if not _owns_answer(resident, a):
         messages.error(request, "Can't delete another person's post!")
         return redirect('index')
 

@@ -139,7 +139,7 @@ body {
   font-style: italic;
   text-decoration: underline;
   text-underline-offset: 0.15em;
-  font-size: clamp(0.88rem, 1.05vw, 1.2rem);   /* 14px @1280 */
+  font-size: clamp(0.9rem, 1.1vw, 1.2rem);   /* 14px @1280 */
   color: var(--ink);
   white-space: nowrap;
   transition: color 200ms ease;
