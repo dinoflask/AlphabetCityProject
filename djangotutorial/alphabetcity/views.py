@@ -117,7 +117,8 @@ def login(request):
     return render(request, "alphabetcity/code.html", {"form": LoginForm()})
 
 
-def index(request):
+def _index_context(request):
+    """Shared context for the Index page and its /tv/ (fullscreen) variant."""
     all_answers_list = (
         Answer.objects.select_related("question", "resident").order_by("-pub_date")
     )
@@ -156,11 +157,22 @@ def index(request):
         else:
             my_response_url = request.session.get("response_url")
 
-    context = {
+    return {
         "all_answers_list": all_answers_list,
         "answers_data": answers_data,  # rendered via {{ ...|json_script }}
         "my_response_url": my_response_url,
     }
+
+
+def index(request):
+    return render(request, "alphabetcity/index.html", _index_context(request))
+
+
+def tv(request):
+    """Same wall as the Index page, but boots straight into fullscreen mode and
+    stays there — for an unattended display (e.g. a gallery TV)."""
+    context = _index_context(request)
+    context["tv"] = True
     return render(request, "alphabetcity/index.html", context)
 
 # Pre-Answer

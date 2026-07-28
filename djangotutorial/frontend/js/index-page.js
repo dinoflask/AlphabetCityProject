@@ -37,7 +37,11 @@ if (toggle && dots) {
   function armExit() { window.addEventListener("keydown", onKeyExit); }
   function disarmExit() { window.removeEventListener("keydown", onKeyExit); }
 
-  function enter() {
+  // The /tv/ page boots straight into fullscreen and stays there — no exit key,
+  // no "Press Esc" hint.
+  const TV = document.body.classList.contains("tv");
+
+  function enter(lock) {
     if (active) return;
     active = true;
 
@@ -48,8 +52,8 @@ if (toggle && dots) {
     document.body.classList.add("screensaver"); // fades out the corner icons (CSS)
     document.body.style.cursor = "none";
 
-    // Replay the "Press Esc to exit" fade-in/out.
-    if (hint) {
+    // Replay the "Press Esc to exit" fade-in/out (skipped on the locked /tv/ page).
+    if (hint && !lock) {
       hint.classList.remove("show");
       void hint.offsetWidth;   // reflow so the animation restarts
       hint.classList.add("show");
@@ -62,7 +66,7 @@ if (toggle && dots) {
     firstTimer = setTimeout(function () { if (active) dots.autoSelectNext(); }, FIRST_MS);
     cycleTimer = setInterval(function () { if (active) dots.autoSelectNext(); }, CYCLE_MS);
 
-    armExit();
+    if (!lock) armExit();   // /tv/ has no exit
   }
 
   function exit() {
@@ -88,4 +92,7 @@ if (toggle && dots) {
     e.stopPropagation();
     enter();
   });
+
+  // /tv/: auto-start fullscreen once the scene is up, and keep it locked on.
+  if (TV) setTimeout(function () { enter(true); }, 300);
 }

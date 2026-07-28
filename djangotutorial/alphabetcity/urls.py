@@ -12,6 +12,8 @@ urlpatterns = [
     path("login/", views.login, name="login"),
     # ex: /alphabetcity/index/  (answers wall)
     path("index/", views.index, name="index"),
+    # ex: /tv/  (index wall that auto-runs fullscreen mode, for a display)
+    path("tv/", views.tv, name="tv"),
     # ex: /alphabetcity/5/
     path("detail/<int:answer_id>/", views.detail_answer, name="detail"),
     # ex: /alphabetcity/choose/

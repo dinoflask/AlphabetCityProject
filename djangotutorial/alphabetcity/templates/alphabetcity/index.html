@@ -154,11 +154,18 @@
     .index-toast.hide { opacity: 0; transition: opacity 0.4s ease; }
     @keyframes toastIn { to { opacity: 1; } }
 
+    /* /tv/ display: hide the cursor and all UI from the first paint (the frontend
+       then auto-enters fullscreen and keeps it there). */
+    body.tv { cursor: none; }
+    body.tv .corner-btns,
+    body.tv .corner-link { opacity: 0; pointer-events: none; }
+    body.tv .index-toast { display: none; }
+
     
   </style>
 </head>
 
-<body>
+<body{% if tv %} class="tv"{% endif %}>
   <div id="garden-bg"></div>
   <div id="index-root"></div>
 
