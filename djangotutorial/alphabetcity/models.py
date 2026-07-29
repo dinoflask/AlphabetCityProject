@@ -14,14 +14,14 @@ class Question(models.Model):
     
 class Resident(models.Model):
     code = models.CharField(max_length=6, unique=True, null=True)
-    # Consent to use their story for grant-writing purposes (set on the Answer page).
-    grant_writing = models.BooleanField(default=False)
 
 class Answer(models.Model):
     resident = models.ForeignKey(Resident, on_delete=models.CASCADE, null=True) #Can be not assigned to a person, for now
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     answer_text = models.CharField(max_length=10000)
     pub_date = models.DateTimeField("date published", auto_now_add=True)
+    # Admin toggle: only visible answers appear on the Index wall.
+    visible = models.BooleanField("Visible", default=True)
 
     def __str__(self):
         return self.answer_text

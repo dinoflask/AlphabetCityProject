@@ -119,8 +119,11 @@ def login(request):
 
 def _index_context(request):
     """Shared context for the Index page and its /tv/ (fullscreen) variant."""
+    # Only answers the admin has left visible appear on the wall.
     all_answers_list = (
-        Answer.objects.select_related("question", "resident").order_by("-pub_date")
+        Answer.objects.filter(visible=True)
+        .select_related("question", "resident")
+        .order_by("-pub_date")
     )
 
     # Give each question a stable 0-based index so the front-end can color its
@@ -198,9 +201,7 @@ def answer_question(request, question_pk):
 
     resident = Resident.objects.get(pk=resident_id)
     question = get_object_or_404(Question, pk=question_pk)
-    grant_writing = False
     if request.method == "POST":
-        grant_writing = "grant_writing" in request.POST  # checkbox present == checked
         form = AnswerForm(request.POST)
         if form.is_valid():
             Answer.objects.create(
@@ -208,9 +209,6 @@ def answer_question(request, question_pk):
                 question=question,  # Use the question fetched from the URL
                 answer_text=form.cleaned_data['answer_text'],
             )
-            # Record the resident's grant-writing consent for this submission.
-            resident.grant_writing = grant_writing
-            resident.save(update_fields=["grant_writing"])
             return redirect('index')
     else:
         form = AnswerForm()
@@ -220,7 +218,6 @@ def answer_question(request, question_pk):
     return render(request, "alphabetcity/answer.html", {
         "form": form,
         "question": question,
-        "grant_writing": grant_writing,
         "form_action": reverse("answer", args=[question.pk]),
         "submit_label": "Send",
         "back_url": reverse("choose"),
@@ -242,9 +239,6 @@ def edit_answer(request, answer_id):
         form = AnswerForm(request.POST, instance=a)
         if form.is_valid():
             form.save()
-            # Keep grant-writing consent in sync with the checkbox.
-            resident.grant_writing = "grant_writing" in request.POST
-            resident.save(update_fields=["grant_writing"])
             messages.success(request, "Your response was updated")
             return redirect('index')
     else:
@@ -256,7 +250,6 @@ def edit_answer(request, answer_id):
     return render(request, "alphabetcity/answer.html", {
         "form": form,
         "question": a.question,
-        "grant_writing": resident.grant_writing,
         "form_action": reverse("edit", args=[a.id]),
         "submit_label": "Save",
         "back_url": reverse("choose"),
