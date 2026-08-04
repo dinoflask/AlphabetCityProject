@@ -60,6 +60,41 @@ body {
   transform: translate(-50%, -50%);
   will-change: transform, opacity;
   opacity: 0;                               /* revealed by JS once positioned */
+  pointer-events: auto;                     /* so each glyph can be hovered */
+}
+
+/* Hover labels: a top layer (above the viewport) so text is never obscured.
+   choose.js parks each label under its glyph and toggles .is-on on hover. */
+.choose__labels {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.choose__glyph-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);         /* JS overrides with the full translate */
+  white-space: nowrap;
+  font-family: "Montserrat", "Helvetica Neue", sans-serif;
+  font-size: clamp(0.82rem, 1vw, 1.05rem);
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  opacity: 0;
+  transition: opacity 0.18s ease-in-out;    /* quick, satisfying fade */
+}
+
+.choose__glyph-label.is-on { opacity: 1; }
+
+/* Rightmost glyph: its label would run off the right edge on one line, so let it
+   wrap and right-align (choose.js anchors this one's top-right corner). */
+.choose__glyph-label--right {
+  white-space: normal;
+  max-width: min(11rem, 40vw);
+  text-align: right;
 }
 
 /* ---- Question track (masked focus band) ------------------------------ */
@@ -68,6 +103,9 @@ body {
   position: absolute;
   inset: 0;
   z-index: 1;
+  /* Let empty areas fall through to the glyphs behind (so they can be hovered);
+     the questions themselves re-enable clicks below. */
+  pointer-events: none;
   /* Focus band ~fully opaque around 35%; fades above and below by distance. */
   /* Stricter than before: fully transparent by 54%, so a question two steps
      below the focus (the third, when the first is focused) is invisible. */
@@ -99,6 +137,7 @@ body {
   /* Every question is clickable: the centered one is chosen, a grayed one
      centers itself first (elder-friendly — no scrolling needed). */
   cursor: pointer;
+  pointer-events: auto;                     /* re-enable clicks (viewport is none) */
   /* JS sets translateY((index - progress) * step). */
   will-change: transform;
 }

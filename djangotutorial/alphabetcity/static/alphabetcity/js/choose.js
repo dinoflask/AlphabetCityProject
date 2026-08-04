@@ -18,8 +18,17 @@
 
   var questions = [].slice.call(root.querySelectorAll(".choose__q"));
   var glyphEls = [].slice.call(root.querySelectorAll(".choose__glyph"));
+  var labelEls = [].slice.call(root.querySelectorAll(".choose__glyph-label"));
   var N = questions.length;
   if (!N) return;
+
+  // Hover a glyph -> fade in its label; leave -> fade out (CSS handles the ease).
+  glyphEls.forEach(function (g, i) {
+    var lbl = labelEls[i];
+    if (!lbl) return;
+    g.addEventListener("mouseenter", function () { lbl.classList.add("is-on"); });
+    g.addEventListener("mouseleave", function () { lbl.classList.remove("is-on"); });
+  });
 
   var reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -79,9 +88,26 @@
       var fade = 1;
       if (t < 0.1) fade = clamp01((t + 0.02) / 0.12);
       else if (t > 0.9) fade = clamp01((1.02 - t) / 0.12);
+      var px = p[0] * vw, py = p[1] * vh;
       glyphEls[g].style.transform =
-        "translate(" + (p[0] * vw) + "px," + (p[1] * vh) + "px) translate(-50%,-50%) scale(" + scale + ")";
+        "translate(" + px + "px," + py + "px) translate(-50%,-50%) scale(" + scale + ")";
       glyphEls[g].style.opacity = (0.9 * fade).toFixed(3);
+      // Don't let a faded/off-screen glyph catch hovers (would show a stray label).
+      glyphEls[g].style.pointerEvents = fade > 0.5 ? "auto" : "none";
+
+      // Park this glyph's label just below it (rendered height = CSS height * scale).
+      var lbl = labelEls[g];
+      if (lbl) {
+        var gh = glyphEls[g].offsetHeight * scale;
+        // Most labels center under the glyph; the flagged rightmost one anchors
+        // its top-right corner to the glyph so it wraps leftward, never off-screen.
+        var right = lbl.classList.contains("choose__glyph-label--right");
+        var ax = right ? "-100%" : "-50%";
+        var ay = right ? "0" : "-50%";
+        lbl.style.transform =
+          "translate(" + px + "px," + (py + gh / 2 + 14) + "px) translate(" + ax + "," + ay + ")";
+        if (fade <= 0.5) lbl.classList.remove("is-on"); // hide if its glyph faded out
+      }
     }
   }
 

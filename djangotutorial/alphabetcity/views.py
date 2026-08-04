@@ -156,9 +156,15 @@ def _index_context(request):
     if resident:
         own = Answer.objects.filter(resident=resident).order_by("-pub_date").first()
         if own:
+            # Already answered -> straight back to that answer, in edit mode.
             my_response_url = reverse("edit", args=[own.id])
         else:
-            my_response_url = request.session.get("response_url")
+            # Signed in but hasn't submitted yet -> back to the question they
+            # were last writing on, or the picker if we don't know which one.
+            my_response_url = request.session.get("response_url") or reverse("choose")
+    else:
+        # Not signed in -> send them to log in first.
+        my_response_url = reverse("login")
 
     return {
         "all_answers_list": all_answers_list,
@@ -239,7 +245,7 @@ def edit_answer(request, answer_id):
         form = AnswerForm(request.POST, instance=a)
         if form.is_valid():
             form.save()
-            messages.success(request, "Your response was updated")
+            messages.success(request, "Your response was updated.")
             return redirect('index')
     else:
         form = AnswerForm(instance=a)  # Populates form with existing data

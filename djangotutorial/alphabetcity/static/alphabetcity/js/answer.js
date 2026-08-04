@@ -10,7 +10,8 @@
 
   const send = document.querySelector(".answer__send");
   const MAX_LINES = 6;
-  const MIN_WORDS = 10;   // must match AnswerForm.MIN_WORDS on the server
+  const MIN_WORDS = 1;    // must match AnswerForm.MIN_WORDS on the server
+  const MAX_WORDS = 200;   // count-down starts here
 
   function lineHeightPx() {
     const cs = getComputedStyle(ta);
@@ -30,10 +31,16 @@
     // Word count (JS): non-empty runs separated by whitespace.
     const trimmed = ta.value.trim();
     const words = trimmed ? trimmed.split(/\s+/).length : 0;
-    count.textContent = words;
+
+    // Count DOWN from MAX_WORDS instead of up.
+    const remaining = MAX_WORDS - words;
+    count.textContent = remaining;
     resize();
 
-    // Gate submission on the 15-word minimum (the server enforces it too).
+    // Turn red once the remaining count hits (or goes below) zero.
+    count.style.color = remaining <= 0 ? "red" : "";
+
+    // Gate submission on the 10-word minimum (the server enforces it too).
     const short = words < MIN_WORDS;
     count.classList.toggle("is-short", short);
     if (send) send.disabled = short;

@@ -34,6 +34,15 @@
       <img class="choose__glyph" data-scale="1" src="{% static 'alphabetcity/img/choose-glyph-1.png' %}" alt="" />
     </div>
 
+    <!-- One hover label per glyph (same order); choose.js parks each under its
+         glyph and toggles .is-on on hover. -->
+    <div class="choose__labels" aria-hidden="true">
+      <span class="choose__glyph-label">ⲁ — alfa — Coptic</span>
+      <span class="choose__glyph-label">क — ka — Devanagari (Hindi/Sanskrit)</span>
+      <span class="choose__glyph-label">ف — fāʾ — Arabic</span>
+      <span class="choose__glyph-label choose__glyph-label--right">せ — se — Japanese (Hiragana)</span>
+    </div>
+
     <div class="choose__viewport">
       <div class="choose__track">
         {% for q in questions %}
