@@ -204,6 +204,12 @@ export default class Sketch {
     this.renderer.setSize(this.width, this.height);
     this.camera.aspect = this.width / this.height;
     this.camera.updateProjectionMatrix();
+
+    // Keep point-size math correct if DPR changes (e.g. dragging the window
+    // between a Retina and non-Retina monitor, or Chrome zoom).
+    const dpr = Math.min(window.devicePixelRatio, 2);
+    this.renderer.setPixelRatio(dpr);
+    this.material.uniforms.uDpr.value = dpr;
   }
 
   addObjects() {
@@ -214,7 +220,7 @@ export default class Sketch {
       side: THREE.DoubleSide,
       uniforms: {
         time: { value: 0 },
-        resolution: { value: new THREE.Vector4() },
+        uDpr: { value: Math.min(window.devicePixelRatio, 2) }, // ← replaces `resolution`
         uPositions: { value: null },
         uHoverIndex: { value: -1 }, // which answer dot is hovered
         uHoverAmt: { value: 0 }     // eased 0->1 grow/glow amount (with delay)
@@ -259,7 +265,7 @@ export default class Sketch {
         colors[i*3]   = Math.min(1, c[0] * shade);
         colors[i*3+1] = Math.min(1, c[1] * shade);
         colors[i*3+2] = Math.min(1, c[2] * shade);
-        scales[i] = 1.2 + Math.random() * 1.5;   // answer dots (bigger than filler) // HERE
+        scales[i] = 0.8 + Math.random() * 1.5;   // answer dots (bigger than filler) // HERE
         isAnswer[i] = 1;
 
         this.answerIndices.push(i);
@@ -275,7 +281,7 @@ export default class Sketch {
         colors[i*3]   = Math.min(1, c[0] * shade);
         colors[i*3+1] = Math.min(1, c[1] * shade);
         colors[i*3+2] = Math.min(1, c[2] * shade);
-        scales[i] = 0.65 + Math.random() * 1.2; // HERE
+        scales[i] = 0.45 + Math.random() * 1.2; // HERE
         isAnswer[i] = 0;
       }
     }
