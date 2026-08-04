@@ -16,22 +16,70 @@ const dots = dotsEl ? new Sketch({ dom: dotsEl, answers }) : null;
 
 // ---------------------------------------------------------------------------
 // Screensaver mode: click the top-right button to zoom the glyph + garden in a
-// touch, hide the cursor and UI icons, and auto-cycle each answer's details
-// every 10s. Only the Escape key eases everything back — a "Press Esc to exit"
-// notice fades in and out at the bottom when it starts, so moving the mouse or
-// pressing other keys doesn't kick you out.
+// touch, hide the cursor and UI icons, and auto-cycle each answer's details.
+// Each answer stays on screen for a duration scaled by its word count (short
+// answers cycle quickly, long ones linger). Only the Escape key eases
+// everything back — a "Press Esc to exit" notice fades in and out at the
+// bottom when it starts, so moving the mouse or pressing other keys doesn't
+// kick you out.
 // ---------------------------------------------------------------------------
 const toggle = document.getElementById("screensaver-toggle");
 if (toggle && dots) {
   const ZOOM = 1.3;        // subtle push-in
-  const CYCLE_MS = 15000;  // one answer detail every 15s
   const FIRST_MS = 1200;   // first detail shortly after the zoom settles
+
+  // --- auto-cycle pacing, scaled by word count -----------------------------
+  const CYCLE = (function () {
+    const MIN_MS = 5000;    // 1-word answer
+    const MAX_MS = 50000;   // 200-word (max) answer
+    const MIN_WORDS = 1;
+    const MAX_WORDS = 200;
+
+    function wordCount(text) {
+      return (text || "").trim().split(/\s+/).filter(Boolean).length;
+    }
+
+    function delayFor(answer) {
+      const wc = wordCount(answer && answer.body);
+      const clamped = Math.max(MIN_WORDS, Math.min(MAX_WORDS, wc));
+      const t = (clamped - MIN_WORDS) / (MAX_WORDS - MIN_WORDS); // 0..1
+      return MIN_MS + (MAX_MS - MIN_MS) * t;
+    }
+
+    return { delayFor };
+  })();
+
+  // --- self-contained auto-cycle controller --------------------------------
+  // Owns its own pointer into `answers` rather than reading dots._autoPtr, so
+  // it only ever touches Sketch's public API (autoSelectNext / unlockMenu).
+  const autoCycle = (function () {
+    let ptr = -1;
+    let timer = null;
+
+    function tick() {
+      ptr = (ptr + 1) % answers.length;
+      dots.autoSelectNext();
+      const delay = CYCLE.delayFor(answers[ptr]);
+      timer = setTimeout(tick, delay);
+    }
+
+    function start() {
+      ptr = -1;
+      timer = setTimeout(tick, FIRST_MS);
+    }
+
+    function stop() {
+      clearTimeout(timer);
+      timer = null;
+    }
+
+    return { start, stop };
+  })();
+  // ---------------------------------------------------------------------------
 
   const hint = document.getElementById("screensaver-hint");
 
   let active = false;
-  let cycleTimer = null;
-  let firstTimer = null;
 
   function onKeyExit(e) { if (e.key === "Escape") exit(); }
   function armExit() { window.addEventListener("keydown", onKeyExit); }
@@ -63,8 +111,7 @@ if (toggle && dots) {
     dots.setAutoMode(true);
     if (garden) { garden.setZoom(ZOOM); garden.triggerBurst(); }
 
-    firstTimer = setTimeout(function () { if (active) dots.autoSelectNext(); }, FIRST_MS);
-    cycleTimer = setInterval(function () { if (active) dots.autoSelectNext(); }, CYCLE_MS);
+    autoCycle.start();
 
     if (!lock) armExit();   // /tv/ has no exit
   }
@@ -73,9 +120,7 @@ if (toggle && dots) {
     if (!active) return;
     active = false;
     disarmExit();
-    clearTimeout(firstTimer);
-    clearInterval(cycleTimer);
-    cycleTimer = null;
+    autoCycle.stop();
 
     if (hint) hint.classList.remove("show");
 
