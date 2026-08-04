@@ -259,7 +259,7 @@ export default class Sketch {
         colors[i*3]   = Math.min(1, c[0] * shade);
         colors[i*3+1] = Math.min(1, c[1] * shade);
         colors[i*3+2] = Math.min(1, c[2] * shade);
-        scales[i] = 1.6 + Math.random() * 1.5;   // answer dots (bigger than filler) // HERE
+        scales[i] = 1.2 + Math.random() * 1.5;   // answer dots (bigger than filler) // HERE
         isAnswer[i] = 1;
 
         this.answerIndices.push(i);
@@ -275,7 +275,7 @@ export default class Sketch {
         colors[i*3]   = Math.min(1, c[0] * shade);
         colors[i*3+1] = Math.min(1, c[1] * shade);
         colors[i*3+2] = Math.min(1, c[2] * shade);
-        scales[i] = 0.85 + Math.random() * 1.2; // HERE
+        scales[i] = 0.65 + Math.random() * 1.2; // HERE
         isAnswer[i] = 0;
       }
     }
@@ -407,7 +407,7 @@ export default class Sketch {
     // Grow/glow the hovered dot: wait HOVER_DELAY, then ease in; ease back out
     // on unhover. uHoverIndex stays put during ease-out so the shrink is visible.
     const grow = (this.hoverIndex >= 0 && performance.now() >= this.hoverActivateAt) ? 1 : 0;
-    this.hoverAmt += (grow - this.hoverAmt) * 0.1;
+    this.hoverAmt += (grow - this.hoverAmt) * 0.05;
     this.material.uniforms.uHoverAmt.value = this.hoverAmt;
 
     // Ease the screensaver camera dolly (zoom = 1 normal, >1 pushed in).
