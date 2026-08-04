@@ -259,7 +259,7 @@ export default class Sketch {
         colors[i*3]   = Math.min(1, c[0] * shade);
         colors[i*3+1] = Math.min(1, c[1] * shade);
         colors[i*3+2] = Math.min(1, c[2] * shade);
-        scales[i] = 1.1 + Math.random() * 0.4;   // answer dots (bigger than filler)
+        scales[i] = 1.6 + Math.random() * 1.5;   // answer dots (bigger than filler) // HERE
         isAnswer[i] = 1;
 
         this.answerIndices.push(i);
@@ -275,7 +275,7 @@ export default class Sketch {
         colors[i*3]   = Math.min(1, c[0] * shade);
         colors[i*3+1] = Math.min(1, c[1] * shade);
         colors[i*3+2] = Math.min(1, c[2] * shade);
-        scales[i] = 0.45 + Math.random() * 0.4;
+        scales[i] = 0.85 + Math.random() * 1.2; // HERE
         isAnswer[i] = 0;
       }
     }
@@ -472,7 +472,7 @@ export default class Sketch {
       const s = document.createElement("style");
       s.id = "dm-style";
       s.textContent = `
-      .dm-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:0;opacity:0;transition:opacity .2s ease;}
+      .dm-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:2;opacity:0;transition:opacity .2s ease;}
       .dm-svg.show{opacity:1;}
       .dm-stem{fill:none;stroke:#654618;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));}
       .dm-box{position:absolute;z-index:3;width:400px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;
@@ -672,6 +672,11 @@ export default class Sketch {
     const P0 = [s.x, s.y];        // dot (short end)
     const P1 = [s.x, cornerY];    // corner
     const P2 = [edgeX, cornerY];  // box edge (long end)
+
+    const DOT_R = 16; // roughly the hovered dot's rendered pixel radius
+    const dx = P1[0] - P0[0], dy = P1[1] - P0[1];
+    const len = Math.hypot(dx, dy) || 1;
+    const P0adj = [P0[0] + (dx/len)*DOT_R, P0[1] + (dy/len)*DOT_R];
 
     // ---- Appear timeline: draw the L first, then pop the box open. ----
     const elapsed = performance.now() - this.appearStart;

@@ -38,8 +38,8 @@ export default class Garden {
     this.DEPTH = 2.2; // front-to-back spread -> parallax (bottom = nearer)
     this.LOWER = 0.35; // how far the whole field sits below center
     // Central open ellipse (in image UV) kept clear so the answer-dots breathe.
-    this.OPEN_CX = 0.5; this.OPEN_CY = 0.46;
-    this.OPEN_RX = 0.26; this.OPEN_RY = 0.34;
+    this.OPEN_CX = 0.48; this.OPEN_CY = 0.44;
+    this.OPEN_RX = 0.24; this.OPEN_RY = 0.32;
 
     this.mouse = new THREE.Vector2(0, 0);
     this.raycaster = new THREE.Raycaster();
@@ -146,7 +146,7 @@ export default class Garden {
         uSpeed: { value: 0.025 },
         uCurlAmp: { value: 0.06 },
         uFlowDist: { value: 0.35 },
-        uSize: { value: 40 }, // <-- global garden-dot size knob (tune me)
+        uSize: { value: 70 }, // <-- global garden-dot size knob (tune me) //HERE
         uFlowDir: { value: new THREE.Vector3(1.0, 0.1, 0.0).normalize() },
         uMouse: { value: new THREE.Vector3(999, 999, 0) },
         uRevealRadius: { value: 1.3 }, // how large the mouse's reveal area is
