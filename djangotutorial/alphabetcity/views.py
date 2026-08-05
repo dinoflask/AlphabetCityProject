@@ -236,6 +236,7 @@ def answer_question(request, question_pk):
         "form_action": reverse("answer", args=[question.pk]),
         "submit_label": "Send",
         "back_url": reverse("choose"),
+        "is_vetted_demo": _is_vetted_demo_resident(resident),
     })
 
 # Post-Answer
@@ -268,6 +269,7 @@ def edit_answer(request, answer_id):
         "form_action": reverse("edit", args=[a.id]),
         "submit_label": "Save",
         "back_url": reverse("choose"),
+        "is_vetted_demo": _is_vetted_demo_resident(resident),
     })
 
 
