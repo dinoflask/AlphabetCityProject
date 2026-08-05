@@ -13,6 +13,13 @@ from alphabetcity.models import Question, Answer, Resident
 # trigger a guaranteed 5-minute lockout, timed from that 3rd wrong guess.
 LOGIN_FAIL_LIMIT = 3
 LOGIN_LOCKOUT_SECONDS = 300
+VETTED_DEMO_CODE = "ZSHF77"
+
+
+def _is_vetted_demo_resident(resident):
+    if not resident:
+        return False
+    return (resident.code or "").strip().upper() == VETTED_DEMO_CODE
 
 
 def welcome(request):
@@ -49,13 +56,15 @@ def _session_resident(request):
 def _owns_answer(resident, answer):
     """True only when the signed-in resident's code matches the answer owner's
     code. Ownership is keyed on the code (case-insensitively) so no one can edit
-    or delete a response that isn't theirs."""
+    or delete a response that isn't theirs. The vetted demo code never owns
+    anything, since it's a shared code and its answers shouldn't be editable."""
     if not resident or not answer.resident_id:
+        return False
+    if _is_vetted_demo_resident(resident):
         return False
     owner_code = (answer.resident.code or "").strip().upper()
     my_code = (resident.code or "").strip().upper()
     return bool(owner_code) and owner_code == my_code
-
 
 def login(request):
     if request.method == "POST":
@@ -153,17 +162,17 @@ def _index_context(request):
     # points to their submitted answer (edit page) if they have one; otherwise to
     # the answer page they were last writing on before jumping over to browse.
     my_response_url = None
-    if resident:
+    if resident and _is_vetted_demo_resident(resident):
+        # Shared vetted code — always send the write button to the code page,
+        # never to a specific "my answer".
+        my_response_url = reverse("login")
+    elif resident:
         own = Answer.objects.filter(resident=resident).order_by("-pub_date").first()
         if own:
-            # Already answered -> straight back to that answer, in edit mode.
             my_response_url = reverse("edit", args=[own.id])
         else:
-            # Signed in but hasn't submitted yet -> back to the question they
-            # were last writing on, or the picker if we don't know which one.
             my_response_url = request.session.get("response_url") or reverse("choose")
     else:
-        # Not signed in -> send them to log in first.
         my_response_url = reverse("login")
 
     return {
